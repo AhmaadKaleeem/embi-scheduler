@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : rr
+  Workload     : heavy_tail
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 789
+  Arrival rate : 0.5
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 1164438049601.000000
+  Lyapunov Drift   : 1057966.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999800 %
+  Completed Jobs   : 999998
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 406866.981943 ticks
+  P50 Waiting Time  : 406600.000000 ticks
+  P95 Waiting Time  : 772300.000000 ticks
+  P99 Waiting Time  : 806100.000000 ticks
+  Max Waiting Time  : 820667.000000 ticks
+  Avg Turnaround    : 406867.981943 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 1.000000
+  Max Starvation       : 390.000000 ticks
+  Avg Starvation       : 39.375000 ticks
+  Starvation Events    : 0
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 134558.844127
+  Max  Queue Length  : 277417.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 6074559817.625660
+  Queue Std Dev      : 77939.462518
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 1.422000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.721180 nats
+  Avg Score Variance  : 0.062500
+  Context Switch Rate : 99.999900 %
+  Total Throughput    : 0.999998 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/rr/heavy_tail/seed_789_rate_0.500000

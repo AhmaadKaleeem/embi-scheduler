@@ -1,0 +1,52 @@
+{
+  "config": {
+    "M": 10.0,
+    "alpha": 0.1,
+    "arrival_rate": 0.1,
+    "beta": 0.1,
+    "num_processes": 16,
+    "scheduler": "rr",
+    "seed": 789,
+    "service_rate": 1.0,
+    "ticks": 1000000,
+    "workload": "poisson"
+  },
+  "fairness": {
+    "jain_index": 0.999999999472999,
+    "max_starvation": 46.0,
+    "starvation_events": 0
+  },
+  "latency": {
+    "avg_turnaround": 186638.10617510616,
+    "avg_waiting_time": 186637.10617510616,
+    "max_waiting_time": 376447.0,
+    "p50_waiting_time": 186300.0,
+    "p95_waiting_time": 354500.0,
+    "p99_waiting_time": 369500.0
+  },
+  "online": {
+    "completed_jobs": 999999,
+    "lyapunov_drift": -75061.0,
+    "lyapunov_v": 22351688838.0,
+    "throughput": 1.0,
+    "utilization": 0.999999
+  },
+  "queue": {
+    "max": 37713.0,
+    "mean": 18627.039028125,
+    "median": 9999.0,
+    "min": 0.0,
+    "std_dev": 10772.769901013675,
+    "variance": 116052571.34018618
+  },
+  "scheduler_diag": {
+    "avg_entropy": 2.7211801935497983,
+    "avg_score_variance": 0.0625,
+    "context_switch_rate": 0.999998999999,
+    "total_throughput": 0.999999
+  },
+  "stability": {
+    "oscillation_frequency": 45.574999999999996,
+    "time_to_steady_state": -1.0
+  }
+}

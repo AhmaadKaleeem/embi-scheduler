@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : fcfs
+  Workload     : heavy_tail
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 123
+  Arrival rate : 0.7
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 1454273050846.000000
+  Lyapunov Drift   : 4735872.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999800 %
+  Completed Jobs   : 999998
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 9457.253244 ticks
+  P50 Waiting Time  : 0.000000 ticks
+  P95 Waiting Time  : 44700.000000 ticks
+  P99 Waiting Time  : 62300.000000 ticks
+  Max Waiting Time  : 66574.000000 ticks
+  Avg Turnaround    : 9458.253244 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.187523
+  Max Starvation       : 1000000.000000 ticks
+  Avg Starvation       : 811992.000000 ticks
+  Starvation Events    : 218
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 136080.370246
+  Max  Queue Length  : 338940.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 11630675701.226002
+  Queue Std Dev      : 107845.610487
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.290000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.516983 nats
+  Avg Score Variance  : nan
+  Context Switch Rate : 54.012708 %
+  Total Throughput    : 0.999998 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/fcfs/heavy_tail/seed_123_rate_0.700000

@@ -1,0 +1,16 @@
+{
+  "schedulers":    ["embi", "rr"],
+  "workloads":     ["poisson"],
+  "seeds":         [42],
+  "arrival_rates": [0.3, 0.5, 0.8],
+  "ticks":         50000,
+  "num_processes": 8,
+  "M":             10.0,
+  "service_rate":  1.0,
+  "alpha":         0.1,
+  "beta":          0.1,
+  "log_freq":      100,
+  "null_log":      false,
+  "binary_log":    false,
+  "output_dir":    "results/quick_demo"
+}

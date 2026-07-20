@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : maxweight
+  Workload     : poisson
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 789
+  Arrival rate : 0.8
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 8698218603399.000000
+  Lyapunov Drift   : 17695594.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 460823.729094 ticks
+  P50 Waiting Time  : 460800.000000 ticks
+  P95 Waiting Time  : 875700.000000 ticks
+  P99 Waiting Time  : 912500.000000 ticks
+  Max Waiting Time  : 923038.000000 ticks
+  Avg Turnaround    : 460824.729094 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.999812
+  Max Starvation       : 3452.000000 ticks
+  Avg Starvation       : 1953.250000 ticks
+  Starvation Events    : 33051
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 368642.421183
+  Max  Queue Length  : 737319.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 45305483041.026855
+  Queue Std Dev      : 212850.846935
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.004000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 1.413687 nats
+  Avg Score Variance  : 37.682770
+  Context Switch Rate : 66.842167 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/maxweight/poisson/seed_789_rate_0.800000

@@ -1,0 +1,30 @@
+# MaxWeight Scheduler — Bursty Workload
+# Single-run configuration file.
+# Load with: ./embi_sim --config examples/maxweight_bursty.yaml
+
+scheduler:    maxweight
+workload:     bursty
+
+# Simulation
+ticks:        1000000
+num_processes: 16
+seed:         42
+
+# Scheduling
+M:            10.0
+alpha:        0.1
+beta:         0.1
+
+# Workload (Markov-modulated ON/OFF)
+arrival_rate:    0.6       # Used for EWMA warm-start; actual governed by burst params
+service_rate:    1.0
+burst_on_rate:   0.8       # Arrival rate during ON state
+burst_off_rate:  0.05      # Arrival rate during OFF state (near silence)
+burst_p_on_off:  0.05      # Prob of ON → OFF transition
+burst_p_off_on:  0.25      # Prob of OFF → ON transition
+
+# Output
+output_dir:   results/maxweight_bursty
+log_freq:     1000
+binary_log:   false
+null_log:     false

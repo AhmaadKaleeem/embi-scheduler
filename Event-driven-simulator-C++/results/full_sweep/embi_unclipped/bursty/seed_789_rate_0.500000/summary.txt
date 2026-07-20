@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : embi_unclipped
+  Workload     : bursty
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 789
+  Arrival rate : 0.5
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 178782460645.000000
+  Lyapunov Drift   : -211419.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 314630.191170 ticks
+  P50 Waiting Time  : 315200.000000 ticks
+  P95 Waiting Time  : 596900.000000 ticks
+  P99 Waiting Time  : 622300.000000 ticks
+  Max Waiting Time  : 634927.000000 ticks
+  Avg Turnaround    : 314631.191170 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.999821
+  Max Starvation       : 2463.000000 ticks
+  Avg Starvation       : 1986.125000 ticks
+  Starvation Events    : 35393
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 52883.353274
+  Max  Queue Length  : 105711.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 928473479.590387
+  Queue Std Dev      : 30470.862797
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 38.563000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 1.024346 nats
+  Avg Score Variance  : 123.909781
+  Context Switch Rate : 67.164267 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/embi_unclipped/bursty/seed_789_rate_0.500000

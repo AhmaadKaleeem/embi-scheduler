@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : rr
+  Workload     : poisson
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 456
+  Arrival rate : 0.3
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 902163637405.000000
+  Lyapunov Drift   : 1901696.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 395663.881879 ticks
+  P50 Waiting Time  : 395600.000000 ticks
+  P95 Waiting Time  : 751700.000000 ticks
+  P99 Waiting Time  : 783400.000000 ticks
+  Max Waiting Time  : 793136.000000 ticks
+  Avg Turnaround    : 395664.881879 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 1.000000
+  Max Starvation       : 19.000000 ticks
+  Avg Starvation       : 15.312500 ticks
+  Starvation Events    : 0
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 118706.667851
+  Max  Queue Length  : 238349.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 4701909544.327263
+  Queue Std Dev      : 68570.471373
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 5.324000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.721180 nats
+  Avg Score Variance  : 0.062500
+  Context Switch Rate : 99.999900 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/rr/poisson/seed_456_rate_0.300000

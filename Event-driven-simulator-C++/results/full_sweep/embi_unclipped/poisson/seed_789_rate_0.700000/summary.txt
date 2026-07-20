@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : embi_unclipped
+  Workload     : poisson
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 789
+  Arrival rate : 0.7
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 6499901809938.000000
+  Lyapunov Drift   : 16571721.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 455225.473134 ticks
+  P50 Waiting Time  : 455300.000000 ticks
+  P95 Waiting Time  : 864700.000000 ticks
+  P99 Waiting Time  : 901200.000000 ticks
+  Max Waiting Time  : 912939.000000 ticks
+  Avg Turnaround    : 455226.473134 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.999798
+  Max Starvation       : 2588.000000 ticks
+  Avg Starvation       : 1740.625000 ticks
+  Starvation Events    : 33258
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 318650.775886
+  Max  Queue Length  : 637370.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 33850406458.581680
+  Queue Std Dev      : 183984.799531
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.044000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 0.861465 nats
+  Avg Score Variance  : 117.728874
+  Context Switch Rate : 65.902466 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/embi_unclipped/poisson/seed_789_rate_0.700000

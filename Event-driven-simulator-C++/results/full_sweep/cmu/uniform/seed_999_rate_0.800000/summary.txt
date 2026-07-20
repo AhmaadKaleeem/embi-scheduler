@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : cmu
+  Workload     : uniform
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 999
+  Arrival rate : 0.8
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 9321011941831.000000
+  Lyapunov Drift   : 15601181.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 74956.795681 ticks
+  P50 Waiting Time  : 0.000000 ticks
+  P95 Waiting Time  : 562000.000000 ticks
+  P99 Waiting Time  : 711600.000000 ticks
+  Max Waiting Time  : 749713.000000 ticks
+  Avg Turnaround    : 74957.795681 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.091912
+  Max Starvation       : 1000000.000000 ticks
+  Avg Starvation       : 875003.250000 ticks
+  Starvation Events    : 14
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 368761.211069
+  Max  Queue Length  : 800530.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 58192319053.259811
+  Queue Std Dev      : 241230.841837
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.000000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.772589 nats
+  Avg Score Variance  : 0.000000
+  Context Switch Rate : 39.999940 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/cmu/uniform/seed_999_rate_0.800000

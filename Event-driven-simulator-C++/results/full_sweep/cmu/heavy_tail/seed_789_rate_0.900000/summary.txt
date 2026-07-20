@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : cmu
+  Workload     : heavy_tail
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 789
+  Arrival rate : 0.9
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 1430004936859.000000
+  Lyapunov Drift   : 1254892.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999800 %
+  Completed Jobs   : 999998
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 12216.405681 ticks
+  P50 Waiting Time  : 0.000000 ticks
+  P95 Waiting Time  : 15100.000000 ticks
+  P99 Waiting Time  : 294600.000000 ticks
+  Max Waiting Time  : 496882.000000 ticks
+  Avg Turnaround    : 12217.405681 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.199913
+  Max Starvation       : 1000000.000000 ticks
+  Avg Starvation       : 781472.562500 ticks
+  Starvation Events    : 242
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 134558.844127
+  Max  Queue Length  : 339918.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 11591220853.146458
+  Queue Std Dev      : 107662.532262
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.302000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.772589 nats
+  Avg Score Variance  : 0.000000
+  Context Switch Rate : 53.418207 %
+  Total Throughput    : 0.999998 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/cmu/heavy_tail/seed_789_rate_0.900000

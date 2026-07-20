@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : fcfs
+  Workload     : poisson
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 999
+  Arrival rate : 0.2
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 440346291667.000000
+  Lyapunov Drift   : 797194.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 911.008985 ticks
+  P50 Waiting Time  : 0.000000 ticks
+  P95 Waiting Time  : 3800.000000 ticks
+  P99 Waiting Time  : 4700.000000 ticks
+  Max Waiting Time  : 667448.000000 ticks
+  Avg Turnaround    : 912.008985 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.313151
+  Max Starvation       : 1000000.000000 ticks
+  Avg Starvation       : 658397.937500 ticks
+  Starvation Events    : 343
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 68853.570846
+  Max  Queue Length  : 200931.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 4440923485.114469
+  Queue Std Dev      : 66640.254240
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 7.894000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 1.892157 nats
+  Avg Score Variance  : nan
+  Context Switch Rate : 68.070668 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/fcfs/poisson/seed_999_rate_0.200000

@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : cmu
+  Workload     : poisson
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 456
+  Arrival rate : 0.1
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 59635444328.000000
+  Lyapunov Drift   : 400711.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 720.746394 ticks
+  P50 Waiting Time  : 0.000000 ticks
+  P95 Waiting Time  : 2500.000000 ticks
+  P99 Waiting Time  : 6700.000000 ticks
+  Max Waiting Time  : 687815.000000 ticks
+  Avg Turnaround    : 721.746394 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.626717
+  Max Starvation       : 1000000.000000 ticks
+  Avg Starvation       : 337916.687500 ticks
+  Starvation Events    : 2190
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 18681.361692
+  Max  Queue Length  : 100431.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 1.000000
+  Queue Variance     : 890228527.846041
+  Queue Std Dev      : 29836.697670
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 32.552000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.772589 nats
+  Avg Score Variance  : 0.000000
+  Context Switch Rate : 80.095180 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/cmu/poisson/seed_456_rate_0.100000

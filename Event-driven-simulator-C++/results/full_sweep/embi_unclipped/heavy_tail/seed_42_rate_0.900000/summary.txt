@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : embi_unclipped
+  Workload     : heavy_tail
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 42
+  Arrival rate : 0.9
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 1190164847891.000000
+  Lyapunov Drift   : 4909283.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999800 %
+  Completed Jobs   : 999998
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 405578.384185 ticks
+  P50 Waiting Time  : 403600.000000 ticks
+  P95 Waiting Time  : 771500.000000 ticks
+  P99 Waiting Time  : 806500.000000 ticks
+  Max Waiting Time  : 836472.000000 ticks
+  Avg Turnaround    : 405579.384185 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.995678
+  Max Starvation       : 97340.000000 ticks
+  Avg Starvation       : 38587.500000 ticks
+  Starvation Events    : 18930
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 135853.731828
+  Max  Queue Length  : 272757.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 6196728332.863850
+  Queue Std Dev      : 78719.300892
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 1.540000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 1.170250 nats
+  Avg Score Variance  : 558758.742078
+  Context Switch Rate : 80.982762 %
+  Total Throughput    : 0.999998 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/embi_unclipped/heavy_tail/seed_42_rate_0.900000

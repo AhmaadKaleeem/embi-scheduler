@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : rr
+  Workload     : uniform
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 999
+  Arrival rate : 0.8
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 8703322717625.000000
+  Lyapunov Drift   : 16226785.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 460984.149659 ticks
+  P50 Waiting Time  : 460900.000000 ticks
+  P95 Waiting Time  : 875800.000000 ticks
+  P99 Waiting Time  : 912700.000000 ticks
+  Max Waiting Time  : 922193.000000 ticks
+  Avg Turnaround    : 460985.149659 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 1.000000
+  Max Starvation       : 16.000000 ticks
+  Avg Starvation       : 15.062500 ticks
+  Starvation Events    : 0
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 368761.211069
+  Max  Queue Length  : 738030.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 45323372593.783249
+  Queue Std Dev      : 212892.866470
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.000000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.721180 nats
+  Avg Score Variance  : 0.062500
+  Context Switch Rate : 99.999900 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/rr/uniform/seed_999_rate_0.800000

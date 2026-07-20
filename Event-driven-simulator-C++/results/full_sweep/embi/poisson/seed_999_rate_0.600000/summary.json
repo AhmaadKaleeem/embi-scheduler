@@ -1,0 +1,52 @@
+{
+  "config": {
+    "M": 10.0,
+    "alpha": 0.1,
+    "arrival_rate": 0.6,
+    "beta": 0.1,
+    "num_processes": 16,
+    "scheduler": "embi",
+    "seed": 999,
+    "service_rate": 1.0,
+    "ticks": 1000000,
+    "workload": "poisson"
+  },
+  "fairness": {
+    "jain_index": 0.9999031084120877,
+    "max_starvation": 2054.0,
+    "starvation_events": 32888
+  },
+  "latency": {
+    "avg_turnaround": 448058.4701874702,
+    "avg_waiting_time": 448057.4701874702,
+    "max_waiting_time": 897513.0,
+    "p50_waiting_time": 448100.0,
+    "p95_waiting_time": 851200.0,
+    "p99_waiting_time": 887000.0
+  },
+  "online": {
+    "completed_jobs": 999999,
+    "lyapunov_drift": 7525873.0,
+    "lyapunov_v": 4623547109986.0,
+    "throughput": 1.0,
+    "utilization": 0.999999
+  },
+  "queue": {
+    "max": 537561.0,
+    "mean": 268816.894860625,
+    "median": 9999.0,
+    "min": 0.0,
+    "std_dev": 155145.83056769945,
+    "variance": 24070228742.541306
+  },
+  "scheduler_diag": {
+    "avg_entropy": 0.9426317245260865,
+    "avg_score_variance": 85.96915214582687,
+    "context_switch_rate": 0.6818416818416818,
+    "total_throughput": 0.999999
+  },
+  "stability": {
+    "oscillation_frequency": 0.126,
+    "time_to_steady_state": -1.0
+  }
+}

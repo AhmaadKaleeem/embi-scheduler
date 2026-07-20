@@ -1,0 +1,33 @@
+__pycache__/
+*.pyc
+
+# C++
+build/
+build_*/
+*.o
+*.exe
+*.out
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# Results
+results/*.csv
+results/*.png
+results/*.bin
+results/*.json
+results/*.txt
+output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

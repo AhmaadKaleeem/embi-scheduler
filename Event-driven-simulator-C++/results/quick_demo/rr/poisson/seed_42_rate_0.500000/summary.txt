@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : rr
+  Workload     : poisson
+  Ticks        : 50000
+  Processes    : 8
+  Seed         : 42
+  Arrival rate : 0.5
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 2830753303.000000
+  Lyapunov Drift   : 74656.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.998000 %
+  Completed Jobs   : 49999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 18777.779376 ticks
+  P50 Waiting Time  : 18770.000000 ticks
+  P95 Waiting Time  : 35655.000000 ticks
+  P99 Waiting Time  : 37185.000000 ticks
+  Max Waiting Time  : 37803.000000 ticks
+  Avg Turnaround    : 18778.779376 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 1.000000
+  Max Starvation       : 9.000000 ticks
+  Avg Starvation       : 7.250000 ticks
+  Starvation Events    : 0
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 9424.423550
+  Max  Queue Length  : 18995.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9430.000000
+  Queue Variance     : 29556918.437455
+  Queue Std Dev      : 5436.627487
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 91.440000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 1.994301 nats
+  Avg Score Variance  : 0.125000
+  Context Switch Rate : 99.998000 %
+  Total Throughput    : 0.999980 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/quick_demo/rr/poisson/seed_42_rate_0.500000

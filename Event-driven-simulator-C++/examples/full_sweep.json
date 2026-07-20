@@ -1,0 +1,16 @@
+{
+  "schedulers":    ["embi", "embi_unclipped", "maxweight", "cmu", "rr", "fcfs"],
+  "workloads":     ["uniform", "poisson", "bursty", "heavy_tail"],
+  "seeds":         [42, 123, 456, 789, 999],
+  "arrival_rates": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+  "ticks":         1000000,
+  "num_processes": 16,
+  "M":             10.0,
+  "service_rate":  1.0,
+  "alpha":         0.1,
+  "beta":          0.1,
+  "log_freq":      1000,
+  "null_log":      false,
+  "binary_log":    false,
+  "output_dir":    "results/full_sweep"
+}

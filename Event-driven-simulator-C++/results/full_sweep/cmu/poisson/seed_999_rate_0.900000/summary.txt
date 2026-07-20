@@ -1,0 +1,58 @@
+╔══════════════════════════════════════════════════════════╗
+║         EMBI Scheduling Simulator - Run Summary          ║
+╚══════════════════════════════════════════════════════════╝
+
+── Simulation Parameters ────────────────────────────────────
+  Scheduler    : cmu
+  Workload     : poisson
+  Ticks        : 1000000
+  Processes    : 16
+  Seed         : 999
+  Arrival rate : 0.9
+  Service rate : 1
+  Alpha        : 0.1
+  Beta         : 0.1
+  M            : 10
+
+── Online Metrics (final tick) ──────────────────────────────
+  Lyapunov V(t)    : 11981223767565.000000
+  Lyapunov Drift   : 25005594.000000
+  Rolling Throughput: 1.000000 jobs/tick
+  CPU Utilization  : 99.999900 %
+  Completed Jobs   : 999999
+
+── Latency ──────────────────────────────────────────────────
+  Avg Waiting Time  : 44063.369620 ticks
+  P50 Waiting Time  : 0.000000 ticks
+  P95 Waiting Time  : 443700.000000 ticks
+  P99 Waiting Time  : 797900.000000 ticks
+  Max Waiting Time  : 890271.000000 ticks
+  Avg Turnaround    : 44064.369620 ticks
+
+── Fairness ─────────────────────────────────────────────────
+  Jain Fairness Index  : 0.076153
+  Max Starvation       : 1000000.000000 ticks
+  Avg Starvation       : 875079.687500 ticks
+  Starvation Events    : 1721
+
+── Queue Statistics ──────────────────────────────────────────
+  Mean Queue Length  : 418817.768076
+  Max  Queue Length  : 901983.000000
+  Min  Queue Length  : 0.000000
+  Median Queue Length: 9999.000000
+  Queue Variance     : 74226265887.239929
+  Queue Std Dev      : 272444.977724
+
+── Stability ────────────────────────────────────────────────
+  Time to Steady State  : not reached
+  Oscillation Frequency : 0.000000 crossings/1000 ticks
+
+── Scheduler Diagnostics ────────────────────────────────────
+  Avg Decision Entropy: 2.772589 nats
+  Avg Score Variance  : 0.000000
+  Context Switch Rate : 11.849412 %
+  Total Throughput    : 0.999999 jobs/tick
+
+── Logger ───────────────────────────────────────────────────
+  Logger type : csv
+  Output dir  : results/full_sweep/cmu/poisson/seed_999_rate_0.900000

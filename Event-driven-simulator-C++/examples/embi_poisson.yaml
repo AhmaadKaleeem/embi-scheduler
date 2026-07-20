@@ -1,0 +1,26 @@
+# EMBI Scheduler — Poisson Workload
+# Single-run configuration file.
+# Load with: ./embi_sim --config examples/embi_poisson.yaml
+
+scheduler:    embi
+workload:     poisson
+
+# Simulation
+ticks:        1000000
+num_processes: 16
+seed:         42
+
+# EMBI-specific
+M:            10.0
+alpha:        0.1
+beta:         0.1
+
+# Workload
+arrival_rate: 0.5
+service_rate: 1.0
+
+# Output
+output_dir:   results/embi_poisson
+log_freq:     1000
+binary_log:   false
+null_log:     false
