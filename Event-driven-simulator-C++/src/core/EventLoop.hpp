@@ -22,6 +22,7 @@
 #include "core/Config.hpp"
 #include "core/Event.hpp"
 #include "core/EventQueue.hpp"
+#include "core/LockManager.hpp"
 #include "core/OfflineMetrics.hpp"
 #include "core/OnlineMetrics.hpp"
 #include "core/Process.hpp"
@@ -29,6 +30,7 @@
 #include "schedulers/BaseScheduler.hpp"
 #include "schedulers/Decision.hpp"
 #include "workloads/BaseWorkload.hpp"
+#include "workloads/LockContentionWorkload.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -101,20 +103,31 @@ private:
     OfflineMetrics*     offline_metrics_;
     StatisticsDatabase& stats_db_;
 
-    // ─── State ────────────────────────────────────────────────────────────────
+    // ─── State ─────────────────────────────────────────────────────────────────────────
     std::vector<Process>  processes_;           ///< All simulated processes.
     EventQueue            event_queue_;         ///< Priority queue for events.
     std::vector<double>   next_arrival_tick_;   ///< Per-process next-arrival counter.
     std::optional<std::size_t> prev_decision_;  ///< PID chosen last tick.
     Decision              last_decision_;       ///< Shared across event handlers.
 
-    // ─── Event handlers ───────────────────────────────────────────────────────
-    void handleArrivalEvent (const Event& e, uint64_t tick);
-    void handleScheduleEvent(const Event& e, uint64_t tick);
-    void handleServiceEvent (const Event& e, uint64_t tick, double& waiting_time_out);
-    void handleMetricsEvent (const Event& e, uint64_t tick, double waiting_time);
+    // ─── Lock-contention state (null unless workload == lock_contention) ─────────
+    std::unique_ptr<LockManager>         lock_mgr_;             ///< Lock pool.
+    LockContentionWorkload*              lock_workload_{nullptr}; ///< Non-owning cast.
+    std::vector<double>                  next_lock_req_tick_;   ///< Per-process next lock-request timer.
 
-    // ─── Logging helper ───────────────────────────────────────────────────────
+    // ─── Event handlers ────────────────────────────────────────────────────────────
+    void handleArrivalEvent    (const Event& e, uint64_t tick);
+    void handleLockAcquireEvent(const Event& e, uint64_t tick);
+    void handleLockReleaseEvent(const Event& e, uint64_t tick);
+    void handleScheduleEvent   (const Event& e, uint64_t tick);
+    void handleServiceEvent    (const Event& e, uint64_t tick, double& waiting_time_out);
+    void handleMetricsEvent    (const Event& e, uint64_t tick, double waiting_time);
+
+    // ─── Lock-contention helper ───────────────────────────────────────────────────
+    /// Promote waiter to new owner and set up their LockState.
+    void promoteLockWaiter(std::size_t lock_id, int new_owner_pid, double tick_d);
+
+    // ─── Logging helper ────────────────────────────────────────────────────────────
     void emitLogRecords(uint64_t tick, double waiting_time);
 };
 

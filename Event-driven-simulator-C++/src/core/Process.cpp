@@ -135,6 +135,9 @@ void Process::reset() {
     lambda_hat = true_arrival_rate;
     mu_hat     = true_service_rate;
 
+    // Clear lock state
+    lock_state = LockState{};
+
     // Clear per-job arrival timestamps
     job_arrival_queue_.clear();
 }

@@ -50,6 +50,18 @@ EventLoop::EventLoop(const Config&       config,
     for (std::size_t i = 0; i < config.num_processes; ++i) {
         next_arrival_tick_[i] = workload_->next();
     }
+
+    // Lock-contention mode: initialise LockManager and per-process request timers
+    if (config.workload_name == "lock_contention") {
+        lock_workload_ = dynamic_cast<LockContentionWorkload*>(workload_);
+        if (lock_workload_) {
+            lock_mgr_ = std::make_unique<LockManager>(config.num_locks);
+            next_lock_req_tick_.resize(config.num_processes);
+            for (std::size_t i = 0; i < config.num_processes; ++i) {
+                next_lock_req_tick_[i] = lock_workload_->next();
+            }
+        }
+    }
 }
 
 // ─── Main loop ───────────────────────────────────────────────────────────────
@@ -78,6 +90,17 @@ void EventLoop::run() {
             }
         }
 
+        // ── Phase 1b: Generate LockAcquireEvents (lock_contention workload only) ──
+        if (lock_mgr_) {
+            for (std::size_t i = 0; i < processes_.size(); ++i) {
+                while (next_lock_req_tick_[i] <= tick_d) {
+                    std::size_t lock_id = lock_workload_->randomLockId();
+                    event_queue_.push(makeLockAcquireEvent(tick_d, i, lock_id));
+                    next_lock_req_tick_[i] += lock_workload_->next();
+                }
+            }
+        }
+
         // ── Phase 2: Push Schedule and Metrics events ─────────────────────────
         event_queue_.push(makeScheduleEvent(tick_d));
         event_queue_.push(makeMetricsEvent(tick_d));
@@ -94,6 +117,14 @@ void EventLoop::run() {
             switch (e.type) {
                 case EventType::Arrival:
                     handleArrivalEvent(e, tick);
+                    break;
+
+                case EventType::LockAcquire:
+                    if (lock_mgr_) handleLockAcquireEvent(e, tick);
+                    break;
+
+                case EventType::LockRelease:
+                    if (lock_mgr_) handleLockReleaseEvent(e, tick);
                     break;
 
                 case EventType::Schedule:
@@ -151,6 +182,50 @@ void EventLoop::handleScheduleEvent(const Event& /*e*/, uint64_t tick) {
     if (last_decision_.valid) {
         prev_decision_ = last_decision_.chosen_pid;
     }
+
+    // ── Lock-contention: CPU-time accounting for the chosen process ───────────
+    if (lock_mgr_ && last_decision_.valid) {
+        const double tick_d = static_cast<double>(tick);
+        std::size_t  pid    = last_decision_.chosen_pid;
+        Process&     proc   = processes_[pid];
+
+        if (proc.lock_state.holds_lock) {
+            // Accumulate one CPU tick toward the critical section.
+            proc.lock_state.elapsed_cpu += 1.0;
+
+            // Release up to mu_hat waiters this tick.
+            // min(Q, ceil(mu_hat)) — at least 1 if there is a waiter.
+            const int64_t q = proc.queue_length;
+            if (q > 0) {
+                int64_t to_release = static_cast<int64_t>(proc.mu_hat);
+                if (to_release < 1) to_release = 1;
+                if (to_release > q) to_release = q;
+
+                for (int64_t k = 0; k < to_release; ++k) {
+                    double wt = proc.service(tick_d);
+                    offline_metrics_->recordWaitingTime(wt);
+
+                    // Promote next waiter in the LockManager's queue
+                    // (this does NOT change ownership — proc still holds the lock;
+                    //  unblocking means the waiter's Q entry is consumed).
+                    // We simply call service() to dequeue from proc's job queue.
+                }
+            }
+
+            // Check if critical section is complete.
+            if (proc.lock_state.elapsed_cpu >= proc.lock_state.required_cpu) {
+                int lock_id = proc.lock_state.held_lock_id;
+                proc.lock_state = Process::LockState{};  // clear holding state
+
+                // Release the lock and promote next waiter.
+                int next_owner = lock_mgr_->release(static_cast<std::size_t>(lock_id));
+                if (next_owner >= 0) {
+                    promoteLockWaiter(static_cast<std::size_t>(lock_id),
+                                      next_owner, tick_d);
+                }
+            }
+        }
+    }
 }
 
 void EventLoop::handleServiceEvent(const Event& e, uint64_t tick,
@@ -158,13 +233,68 @@ void EventLoop::handleServiceEvent(const Event& e, uint64_t tick,
     std::size_t pid = e.pid;
     if (pid >= processes_.size()) return;
 
-    if (processes_[pid].queue_length > 0) {
+    // In lock-contention mode, CPU-time service (waiter release) is handled
+    // inside handleScheduleEvent. The regular ServiceEvent still handles
+    // ordinary job completions for non-lock processes.
+    if (!lock_mgr_ && processes_[pid].queue_length > 0) {
         double wt = processes_[pid].service(static_cast<double>(tick));
         waiting_time_out = wt;
-
-        // Record waiting time in offline metrics
         offline_metrics_->recordWaitingTime(wt);
+    } else if (!lock_mgr_) {
+        // No-op: empty queue.
+    } else {
+        // Lock-contention mode: service was already applied in handleScheduleEvent.
+        // Still record a waiting time sample if available.
+        waiting_time_out = 0.0;
     }
+}
+
+// ─── Lock event handlers ──────────────────────────────────────────────────────
+
+void EventLoop::handleLockAcquireEvent(const Event& e, uint64_t tick) {
+    std::size_t pid     = e.pid;
+    std::size_t lock_id = static_cast<std::size_t>(e.payload);
+    if (pid >= processes_.size() || lock_id >= lock_mgr_->numLocks()) return;
+
+    const double tick_d = static_cast<double>(tick);
+
+    bool acquired = lock_mgr_->acquire(lock_id, pid);
+
+    if (acquired) {
+        // Grant: set up the LockState with a fresh hold-duration sample.
+        double hold = lock_workload_->holdDuration();
+        processes_[pid].lock_state = Process::LockState{true,
+                                                         static_cast<int>(lock_id),
+                                                         hold,
+                                                         0.0};
+    } else {
+        // Blocked: the current owner's Q_i increments — this IS the fluid-model
+        // arrival update. We call arrival() on the owner.
+        int owner = lock_mgr_->owner(lock_id);
+        if (owner >= 0 && static_cast<std::size_t>(owner) < processes_.size()) {
+            processes_[static_cast<std::size_t>(owner)].arrival(tick_d);
+        }
+    }
+}
+
+void EventLoop::handleLockReleaseEvent(const Event& e, uint64_t tick) {
+    // This event is reserved for future use (e.g., preemptive release).
+    // In the current CPU-time model, release is handled in handleScheduleEvent.
+    (void)e; (void)tick;
+}
+
+void EventLoop::promoteLockWaiter(std::size_t lock_id, int new_owner_pid,
+                                   double tick_d) {
+    // The waiter is now the owner: give it a fresh critical-section hold duration.
+    double hold = lock_workload_->holdDuration();
+    std::size_t new_pid = static_cast<std::size_t>(new_owner_pid);
+    if (new_pid < processes_.size()) {
+        processes_[new_pid].lock_state = Process::LockState{true,
+                                                              static_cast<int>(lock_id),
+                                                              hold,
+                                                              0.0};
+    }
+    (void)tick_d;
 }
 
 void EventLoop::handleMetricsEvent(const Event& /*e*/, uint64_t tick,

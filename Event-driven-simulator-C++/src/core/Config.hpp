@@ -32,7 +32,7 @@ inline constexpr const char* kValidSchedulers[] = {
 
 /// Compile-time list of all supported workload identifiers.
 inline constexpr const char* kValidWorkloads[] = {
-    "uniform", "poisson", "bursty", "heavy_tail", "trace"};
+    "uniform", "poisson", "bursty", "heavy_tail", "trace", "lock_contention"};
 
 /// Compile-time list of all supported workload profile names.
 inline constexpr const char* kValidProfiles[] = {
@@ -92,6 +92,11 @@ struct Config {
     double burst_off_rate{0.05};   ///< Bursty OFF-state arrival rate.
     double burst_p_on_off{0.1};    ///< P(ON → OFF) per tick.
     double burst_p_off_on{0.3};    ///< P(OFF → ON) per tick.
+
+    // ── Lock-contention workload ───────────────────────────────────────────────
+    std::size_t num_locks{4};            ///< Number of independent locks in the pool.
+    double lock_request_rate{0.3};       ///< Poisson rate of lock-acquisition requests per process per tick.
+    double lock_hold_mean{5.0};          ///< Mean CPU ticks a process holds a lock (Exp distributed).
 
     // ── Logging ───────────────────────────────────────────────────────────────
     std::string output_dir{"output"};  ///< Directory for output files.

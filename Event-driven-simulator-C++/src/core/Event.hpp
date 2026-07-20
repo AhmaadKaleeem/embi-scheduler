@@ -34,10 +34,12 @@ namespace embi {
  * lower values are processed first.
  */
 enum class EventType : uint8_t {
-    Arrival  = 0,  ///< A job arrives at a process queue.
-    Schedule = 1,  ///< The scheduler evaluates all processes and selects one.
-    Service  = 2,  ///< The chosen process completes one job.
-    Metrics  = 3,  ///< Online metrics are sampled and a log record is emitted.
+    Arrival     = 0,  ///< A job arrives at a process queue.
+    LockAcquire = 1,  ///< A process attempts to acquire a lock.
+    LockRelease = 2,  ///< A lock-holder releases, unblocking next waiter.
+    Schedule    = 3,  ///< The scheduler evaluates all processes and selects one.
+    Service     = 4,  ///< The chosen process completes one job.
+    Metrics     = 5,  ///< Online metrics are sampled and a log record is emitted.
 };
 
 // ─── Event ───────────────────────────────────────────────────────────────────
@@ -111,6 +113,16 @@ struct EventComparator {
 /// Constructs an ArrivalEvent for the given process at the given tick.
 [[nodiscard]] inline Event makeArrivalEvent(double tick, std::size_t pid) noexcept {
     return Event{tick, EventType::Arrival, pid, 0.0};
+}
+
+/// Constructs a LockAcquireEvent: pid attempts to acquire lock_id at tick.
+[[nodiscard]] inline Event makeLockAcquireEvent(double tick, std::size_t pid, std::size_t lock_id) noexcept {
+    return Event{tick, EventType::LockAcquire, pid, static_cast<double>(lock_id)};
+}
+
+/// Constructs a LockReleaseEvent: pid releases lock_id at tick.
+[[nodiscard]] inline Event makeLockReleaseEvent(double tick, std::size_t pid, std::size_t lock_id) noexcept {
+    return Event{tick, EventType::LockRelease, pid, static_cast<double>(lock_id)};
 }
 
 /// Constructs a ScheduleEvent for the given tick.

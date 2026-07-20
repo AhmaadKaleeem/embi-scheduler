@@ -227,9 +227,20 @@ CLIResult CLI::parse(int argc, char* argv[]) {
             continue;
         }
 
-        // ── EMBI-specific ─────────────────────────────────────────────────────
-        if (arg == "--no-clip") {
-            cfg.embi_clipped = false;
+        // ── Lock-contention workload ───────────────────────────────────────────
+        if (arg == "--num-locks") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.num_locks = static_cast<std::size_t>(toUInt64(arg.c_str(), argv[i]));
+            continue;
+        }
+        if (arg == "--lock-rate") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.lock_request_rate = toDouble(arg.c_str(), argv[i]);
+            continue;
+        }
+        if (arg == "--lock-hold") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.lock_hold_mean = toDouble(arg.c_str(), argv[i]);
             continue;
         }
 

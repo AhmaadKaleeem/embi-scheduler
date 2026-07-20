@@ -95,6 +95,26 @@ public:
     uint64_t arrival_count{0};   ///< Total jobs arrived since creation / last reset().
     uint64_t completed_jobs{0};  ///< Total jobs completed since creation / last reset().
 
+    // ─── Lock-holder state ────────────────────────────────────────────────────
+
+    /**
+     * @struct LockState
+     * @brief Tracks whether this process currently holds a lock and how much
+     *        CPU time it has accumulated toward completing its critical section.
+     *
+     * Hold duration is measured in CPU ticks (ticks the process is actually
+     * scheduled), NOT wall-clock ticks. This faithfully implements the fluid
+     * model where service occurs only when the CPU is allocated to the holder.
+     */
+    struct LockState {
+        bool        holds_lock   = false;  ///< True while this process owns a lock.
+        int         held_lock_id = -1;     ///< Lock ID, or -1 if not holding.
+        double      required_cpu = 0.0;    ///< CPU ticks needed to finish critical section.
+        double      elapsed_cpu  = 0.0;    ///< CPU ticks accumulated while holding.
+    };
+
+    LockState lock_state;  ///< Current lock-holding state (all zeros when not holding).
+
     // ─── Timing ───────────────────────────────────────────────────────────────
 
     double first_arrival_time{-1.0};  ///< Tick of the very first arrival (-1 = never).

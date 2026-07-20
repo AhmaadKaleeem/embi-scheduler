@@ -16,6 +16,7 @@
 #include "schedulers/RoundRobinScheduler.hpp"
 #include "workloads/BurstyWorkload.hpp"
 #include "workloads/HeavyTailWorkload.hpp"
+#include "workloads/LockContentionWorkload.hpp"
 #include "workloads/PoissonWorkload.hpp"
 #include "workloads/TraceLoader.hpp"
 #include "workloads/UniformWorkload.hpp"
@@ -61,6 +62,14 @@ std::unique_ptr<BaseWorkload> Simulator::buildWorkload(const Config& config) {
                 "Simulator: workload 'trace' requires trace_file in config");
         }
         return std::make_unique<TraceLoader>(config.trace_file.value(), /*looping=*/true);
+    }
+    if (name == "lock_contention") {
+        return std::make_unique<LockContentionWorkload>(
+            config.seed,
+            config.num_locks,
+            config.num_processes,
+            config.lock_request_rate,
+            config.lock_hold_mean);
     }
 
     throw std::invalid_argument(

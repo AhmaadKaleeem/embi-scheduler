@@ -106,6 +106,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 set(EMBI_CORE_SOURCES
     src/core/Config.cpp
     src/core/EventQueue.cpp
+    src/core/LockManager.cpp
     src/core/Process.cpp
     src/core/OnlineMetrics.cpp
     src/core/OfflineMetrics.cpp
@@ -128,6 +129,7 @@ set(EMBI_WORKLOAD_SOURCES
     src/workloads/PoissonWorkload.cpp
     src/workloads/BurstyWorkload.cpp
     src/workloads/HeavyTailWorkload.cpp
+    src/workloads/LockContentionWorkload.cpp
     src/workloads/TraceLoader.cpp
     src/workloads/WorkloadProfile.cpp
 )

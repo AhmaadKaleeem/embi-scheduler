@@ -75,7 +75,7 @@ double LockContentionWorkload::holdDuration() {
 
 std::size_t LockContentionWorkload::randomLockId() {
     // Uniform integer in [0, num_locks_).
-    return static_cast<std::size_t>(rng_.uniform_int(0, static_cast<int>(num_locks_) - 1));
+    return static_cast<std::size_t>(rng_.uniformInt(0, static_cast<int64_t>(num_locks_) - 1));
 }
 
 } // namespace embi
