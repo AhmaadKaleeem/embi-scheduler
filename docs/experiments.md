@@ -1,38 +1,21 @@
-# Running Experiments
+# Experiments Guide
 
-This guide explains how to configure and execute experiments in the EMBI simulator.
+## Exp 1: Symmetric Validation
+Validates that EMBI and MaxWeight produce statistically identical tail latencies when process arrival rates are equal.
+Command: `.\Event-driven-simulator-C++\build_release\bin\embi_sim.exe --experiment Event-driven-simulator-C++\examples\exp1_symmetric.json`
 
-## Basic Single Run
-To run a single simulation instance, use the CLI flags to define the environment:
+## Exp 2: Asymmetric Sweep
+Evaluates scheduler performance when arrival rates are heterogeneous. Measures EMBI tail latency reduction.
+Command: `.\Event-driven-simulator-C++\build_release\bin\embi_sim.exe --experiment Event-driven-simulator-C++\examples\exp2_asymmetric.json`
 
-```bash
-cd Event-driven-simulator-C++
-./build/embi_sim --scheduler embi \
-                 --workload poisson \
-                 --ticks 5000000 \
-                 --num-processes 32 \
-                 --arrival-rate 0.8 \
-                 --M 15.0 \
-                 --output results/test_run
-```
+## Exp 3: High Contention
+Stress tests the schedulers with a single highly contested lock.
+Command: `.\Event-driven-simulator-C++\build_release\bin\embi_sim.exe --experiment Event-driven-simulator-C++\examples\exp3_high_contention.json`
 
-## Parameter Sweeps
-For comprehensive evaluation, the simulator supports JSON-based experiment configurations to run parameter sweeps across multiple dimensions (e.g., varying arrival rates or $M$ bounds).
+## Exp 4: Long Hold Times
+Evaluates sensitivity to critical section length.
+Command: `.\Event-driven-simulator-C++\build_release\bin\embi_sim.exe --experiment Event-driven-simulator-C++\examples\exp4_long_hold.json`
 
-1. Define an experiment config (see `examples/run_sweep.sh` for usage).
-2. Execute the sweep:
-```bash
-./build/embi_sim --experiment path/to/sweep_config.json
-```
-
-## Output Artifacts
-Each run or sweep generates data in the output directory:
-- `run.csv`: High-resolution per-tick metrics (Lyapunov drift, queue sizes).
-- `summary.txt`: Human-readable latency percentiles and fairness scores.
-- `summary.json`: Machine-readable results for automated Python plotting.
-
-## Visualization
-Use the Python scripts to generate comparison plots:
-```bash
-python scripts/compare_schedulers.py --data results/sweep_output/summary.json --out figs/
-```
+## Exp 5: Scalability
+Evaluates CPU overhead as process counts increase to 1024.
+Command: `.\Event-driven-simulator-C++\build_release\bin\embi_sim.exe --experiment Event-driven-simulator-C++\examples\exp5_scalability.json`

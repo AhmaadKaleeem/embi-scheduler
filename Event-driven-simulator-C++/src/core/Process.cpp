@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <random>
 
 namespace embi {
 
@@ -21,6 +22,7 @@ Process::Process(std::size_t id_,
                  double      true_mu,
                  double      alpha_,
                  double      beta_,
+                 double      lambda_noise_stddev_,
                  std::size_t queue_preallocate)
     : id(id_)
     , true_arrival_rate(true_lambda)
@@ -29,6 +31,7 @@ Process::Process(std::size_t id_,
     , mu_hat(true_mu)           // Warm-start: assume true rate
     , alpha(alpha_)
     , beta(beta_)
+    , lambda_noise_stddev(lambda_noise_stddev_)
 {
     // Pre-size the deque backing vector would require std::vector instead.
     // Using a deque satisfies O(1) push_back/pop_front without manual sizing.
@@ -108,6 +111,15 @@ void Process::updateArrivalEstimate(double inter_arrival_ticks) {
 
     double observed_rate = 1.0 / inter_arrival_ticks;
     lambda_hat = (1.0 - alpha) * lambda_hat + alpha * observed_rate;
+
+    if (lambda_noise_stddev > 0.0) {
+        // We use a static thread-local generator for efficiency. 
+        // In a true multi-threaded environment, this is safe.
+        static thread_local std::mt19937_64 gen{std::random_device{}()};
+        std::normal_distribution<double> dist{0.0, lambda_noise_stddev};
+        lambda_hat += dist(gen);
+        if (lambda_hat < 0.0) lambda_hat = 0.0;
+    }
 }
 
 void Process::updateServiceEstimate(double service_ticks) {
@@ -121,6 +133,7 @@ void Process::updateServiceEstimate(double service_ticks) {
 
 void Process::reset() {
     queue_length             = 0;
+    sync_debt                = 0;
     arrival_count            = 0;
     completed_jobs           = 0;
     first_arrival_time       = -1.0;

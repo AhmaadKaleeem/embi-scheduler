@@ -1,222 +1,125 @@
 # EMBI CPU Scheduling Simulator
 
-A **research-quality, discrete-event CPU scheduling simulator** implementing five scheduling algorithms across four configurable workload types. Designed as the experimental platform for a research paper on stochastic scheduling and Lyapunov stability analysis.
+A discrete-event CPU scheduling simulator developed to evaluate scheduling policies. It implements five scheduling algorithms and four stochastic workload models. The software provides an experimental platform for analyzing stochastic scheduling systems and calculating Lyapunov stability bounds.
 
----
+## Project Overview
 
-## Algorithms
+### Research Motivation
 
-| Scheduler | Description |
-|-----------|-------------|
-| **EMBI** | EMBI policy: Q_i × (2μ_i + 2λ_i − M), clipped to non-negative |
-| **EMBI (unclipped)** | EMBI without score clipping |
-| **MaxWeight** | Maximises Q_i · μ_i across processes |
-| **cμ** | Prioritises highest service rate μ_i |
-| **Round Robin** | Cyclic allocation, skipping empty queues |
-| **FCFS** | Earliest first-arrival time |
+Cloud computing environments process workload distributions exhibiting heavy-tailed characteristics. Standard scheduling algorithms frequently result in latency degradation and queue starvation under these bursty conditions. The EMBI simulator provides a C++ framework to mathematically model queue stability and measure latency parameters of the EMBI policy relative to MaxWeight and cμ baselines.
 
-## Workloads
+### Supported Schedulers
 
-| Workload | Description |
-|----------|-------------|
-| **Uniform** | U(lo, hi) inter-arrival times |
-| **Poisson** | Exponential(λ) inter-arrival times |
-| **Bursty** | Markov-modulated two-state ON/OFF |
-| **Heavy-tail** | Pareto(scale, shape) — infinite variance |
-| **Trace** | Replay from CSV file |
+*   EMBI: Calculates priority using bounded queue and service rate differentials.
+*   EMBI (unclipped): Standard EMBI calculation omitting boundary constraints.
+*   MaxWeight: Prioritizes processes based on the product of queue length and service rate.
+*   cμ: Prioritizes based exclusively on strict service rate.
+*   Round Robin: Cyclic allocation mechanism.
+*   FCFS: Earliest first-arrival time execution.
 
-## Build
+### Supported Workloads
 
-### Prerequisites
-- CMake ≥ 3.20
-- C++17 compiler (GCC ≥ 11, Clang ≥ 14, MSVC 2022)
-- Internet access for first build (FetchContent pulls GoogleTest, nlohmann/json)
+*   Uniform: Uniform distribution parameterized by lower and upper bounds.
+*   Poisson: Exponential distribution parameterized by arrival rate.
+*   Bursty: Markov-modulated two-state continuous-time model.
+*   Heavy-tail: Pareto distribution characterized by infinite variance.
+*   Trace: Deterministic replay from formatted comma-separated value datasets.
 
-### Debug build
-```sh
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build
+## Repository Structure
+
+```text
+.
+├── CMakeLists.txt
+├── docs
+├── examples
+├── scripts
+├── src
+│   ├── core
+│   ├── logging
+│   ├── schedulers
+│   ├── trace
+│   ├── utils
+│   └── workloads
+└── tests
 ```
 
-### Release build
-```sh
+## Compilation Requirements
+
+*   CMake version 3.20 or newer
+*   Compiler supporting C++17
+*   Python version 3.8 or newer for script execution
+*   GoogleTest and nlohmann/json libraries (resolved automatically during configuration)
+
+## Build Instructions
+
+Execute the following commands to compile the simulator with release optimizations:
+
+```bash
 cmake -B build_release -DCMAKE_BUILD_TYPE=Release
 cmake --build build_release --config Release
 ```
 
-### ASan / UBSan build
-```sh
-cmake -B build_asan -DCMAKE_BUILD_TYPE=Asan
-cmake --build build_asan
-```
+Execute the test suite to verify compilation:
 
-### Run tests
-```sh
-cd build
+```bash
+cd build_release
 ctest --output-on-failure
 ```
 
-## Usage
+## Simulator Execution
 
-### Single run
-```sh
-./embi_sim --scheduler embi \
-           --workload poisson \
-           --ticks 1000000 \
-           --num-processes 64 \
-           --arrival-rate 0.5 \
-           --M 10.0 \
-           --seed 42 \
-           --output results/run0
+The simulator provides a command-line interface.
+
+### Standard Execution
+
+Execute the EMBI scheduler over 1,000,000 ticks with a Poisson workload distribution:
+
+```bash
+./build_release/bin/embi_sim \
+    --scheduler embi \
+    --workload poisson \
+    --ticks 1000000 \
+    --num-processes 64 \
+    --arrival-rate 0.5 \
+    --seed 42 \
+    --output results/poisson_test
 ```
 
-### Parameter sweep
-```sh
-./embi_sim --experiment examples/full_sweep.json
+### Parameter Sweeps
+
+Execute predefined parameter permutations utilizing configuration files:
+
+```bash
+./build_release/bin/embi_sim --experiment examples/full_sweep.json
 ```
 
-### Quick demo
-```sh
-./embi_sim --experiment examples/quick_demo.json
+### Trace-Driven Execution
+
+Replay empirical traces using the trace ingestion framework. Note: Raw datasets must first be normalized to the canonical structure using the data pipeline.
+
+```bash
+# 1. Normalize dataset schemas
+./prepare_traces.sh
+
+# 2. Execute simulation using the canonical output
+./build_release/bin/embi_sim \
+    --scheduler maxweight \
+    --workload trace \
+    --trace scripts/trace_profiler/output_reports/alibaba/canonical.csv \
+    --output results/alibaba_eval
 ```
 
-### Load config from file (YAML)
-```sh
-./embi_sim --config my_config.yaml
-```
+## Output Metrics
 
-### All flags
-```
---scheduler NAME       embi, embi_unclipped, maxweight, cmu, rr, fcfs
---workload NAME        uniform, poisson, bursty, heavy_tail, trace
---profile NAME         web_server, database, cloud_vm, embedded, real_time, interactive_desktop
---ticks N              Simulation ticks (default: 1000000)
---num-processes N      Number of processes (default: 16)
---seed N               PRNG seed (default: 42)
---arrival-rate F       Mean arrivals/tick (default: 0.5)
---service-rate F       Mean service rate (default: 1.0)
---alpha F              EWMA arrival smoothing (default: 0.1)
---beta F               EWMA service smoothing (default: 0.1)
---M F                  EMBI capacity bound (default: 10.0)
---no-clip              Use unclipped EMBI
---trace FILE           Trace CSV file
---output DIR           Output directory (default: output)
---log-freq N           Log every N ticks (default: 1)
---binary-log           Use packed binary log format
---null-log             Discard log output (benchmarking)
---config FILE          Load YAML or JSON config
---experiment FILE      Run a parameter sweep from JSON
---help / -h            Show help
-```
+Outputs are written to the specified output directory.
 
-## Output
+*   run.csv: Tick-level state variables including queue lengths and arrival counts.
+*   summary.txt: Aggregate statistics detailing waiting times and Lyapunov drift calculations.
+*   summary.json: Serialized JSON metrics required for Python visualization scripts.
 
-Each run writes the following to `--output`:
+Key metrics tracked include Lyapunov potential, latency percentiles, Jain's Fairness Index, and systemic throughput.
 
-| File | Description |
-|------|-------------|
-| `run.csv` or `run.bin` | Per-tick per-process log |
-| `summary.txt` | Human-readable metrics report |
-| `summary.json` | Machine-readable metrics (for Python) |
+## Documentation Reference
 
-Experiment sweeps write a combined comparative table:
-
-| File | Description |
-|------|-------------|
-| `summary.txt` | Ranked comparative table (by Jain Fairness Index) |
-| `summary.json` | All run summaries as JSON array |
-
-## Metrics
-
-### Online (updated every tick)
-- Lyapunov potential V(t) = Σ Q_i²
-- Lyapunov drift ΔV = V(t) − V(t−1)
-- Rolling throughput (configurable window)
-- CPU utilisation
-
-### Offline (computed after simulation)
-- Average, P50, P95, P99, max waiting time
-- Average turnaround time
-- Jain Fairness Index
-- Starvation analysis per process
-- Queue length statistics (min, max, mean, median, variance)
-- Time to steady state
-- Oscillation frequency (zero crossings of ΔV)
-- Scheduler decision entropy and score variance
-
-## Project structure
-
-```
-src/
-  CLI.{hpp,cpp}              ← Argument parser
-  main.cpp                   ← Entry point
-
-  core/
-    Config.{hpp,cpp}         ← Simulation configuration
-    Event.hpp                ← Event types and factories
-    EventQueue.{hpp,cpp}     ← Min-heap event queue
-    Process.{hpp,cpp}        ← Process model with EWMA
-    OnlineMetrics.{hpp,cpp}  ← Per-tick Lyapunov / throughput
-    OfflineMetrics.{hpp,cpp} ← Post-simulation histogram statistics
-    EventLoop.{hpp,cpp}      ← Discrete-event simulation engine
-    Simulator.{hpp,cpp}      ← High-level simulation driver
-    Results.hpp              ← Results container
-    Experiment.{hpp,cpp}     ← Parameter sweep manager
-
-  schedulers/
-    Decision.hpp             ← Decision struct with diagnostics
-    SchedulerContext.hpp     ← Context passed to choose()
-    BaseScheduler.{hpp,cpp}  ← Abstract scheduler interface
-    EMBIScheduler.{hpp,cpp}
-    MaxWeightScheduler.{hpp,cpp}
-    CmuScheduler.{hpp,cpp}
-    RoundRobinScheduler.{hpp,cpp}
-    FCFSScheduler.{hpp,cpp}
-
-  workloads/
-    BaseWorkload.hpp         ← Abstract workload interface
-    UniformWorkload.{hpp,cpp}
-    PoissonWorkload.{hpp,cpp}
-    BurstyWorkload.{hpp,cpp}
-    HeavyTailWorkload.{hpp,cpp}
-    TraceLoader.{hpp,cpp}    ← CSV trace replay
-    WorkloadProfile.{hpp,cpp}← Named workload profiles
-
-  logging/
-    Logger.hpp               ← Abstract logger + LogRecord
-    NullLogger.hpp           ← Zero-overhead null sink
-    CSVLogger.{hpp,cpp}      ← Buffered CSV output
-    BinaryLogger.{hpp,cpp}   ← Packed binary output
-    Statistics.{hpp,cpp}     ← Aggregate metric accumulator
-    StatisticsDatabase.{hpp,cpp} ← Unified output manager
-    SummaryWriter.{hpp,cpp}  ← Comparative reports
-
-  utils/
-    Random.{hpp,cpp}         ← MT19937 PRNG wrapper
-    Timer.hpp                ← High-resolution wall-clock timer
-    FileUtils.{hpp,cpp}      ← Directory/path utilities
-    ConfigLoader.{hpp,cpp}   ← YAML/JSON config parser
-
-tests/
-  test_config.cpp            ← Config and ExperimentConfig tests
-  test_workloads.cpp         ← Workload statistical tests
-  test_schedulers.cpp        ← All scheduler unit tests
-  test_process.cpp           ← Process queue/EWMA/starvation tests
-  test_event_queue.cpp       ← EventQueue ordering tests
-  test_random.cpp            ← PRNG tests
-  test_metrics_online.cpp    ← OnlineMetrics tests
-  test_metrics_offline.cpp   ← OfflineMetrics tests
-  test_statistics_db.cpp     ← StatisticsDatabase tests
-  test_cli.cpp               ← CLI parser tests
-  test_config_loader.cpp     ← YAML/JSON loader tests
-  test_experiment.cpp        ← End-to-end integration tests
-  test_regression.cpp        ← Reproducibility + invariant tests
-
-examples/
-  quick_demo.json            ← 6-run demo experiment
-  full_sweep.json            ← 1080-run research sweep
-```
-
-## Licence
-
-MIT License — see `LICENSE`.
+*   Developer Guide: Defines architecture, custom scheduler implementation, and memory management.
+*   Reproducibility Guide: Specifies commands and configurations required to replicate experimental results.

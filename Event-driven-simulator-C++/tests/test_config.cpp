@@ -142,6 +142,27 @@ TEST(ExperimentConfigTest, ExpandProducesCorrectCount) {
     EXPECT_EQ(configs.size(), 2UL * 1UL * 1UL * 3UL);  // = 6
 }
 
+TEST(ExperimentConfigTest, AsymmetricSweepExpandsAndLabelsConfigs) {
+    ExperimentConfig exp;
+    exp.schedulers    = {"embi", "maxweight"};
+    exp.workloads     = {"lock_contention"};
+    exp.seeds         = {42, 123};
+    exp.arrival_rates = {0.5};
+    exp.arrival_rate_asymmetric_sweep = {
+        {0.9, 0.5, 0.1},
+        {0.8, 0.5, 0.2}
+    };
+
+    auto configs = exp.expand();
+    EXPECT_EQ(exp.totalRuns(), 2UL * 1UL * 2UL * 1UL * 2UL);
+    ASSERT_EQ(configs.size(), exp.totalRuns());
+    EXPECT_EQ(configs[0].arrival_rate_asymmetric,
+              (std::vector<double>{0.9, 0.5, 0.1}));
+    EXPECT_NE(configs[0].output_dir, configs[1].output_dir);
+    EXPECT_NE(configs[0].output_dir.find("_asym_0.900000_0.500000_0.100000"),
+              std::string::npos);
+}
+
 TEST(ExperimentConfigTest, ExpandedConfigsAreValid) {
     ExperimentConfig exp;
     exp.schedulers    = {"embi", "fcfs"};

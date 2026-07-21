@@ -1,0 +1,14 @@
+{
+  "schedulers": ["hybrid_embi"],
+  "workloads": ["poisson"],
+  "seeds": [42],
+  "arrival_rates": [0.5],
+  "lambda_noise_stddevs": [0.0, 0.01, 0.05, 0.1, 0.2, 0.5, 1.0],
+  "arrival_rate_asymmetric_sweep": [
+    [0.1, 0.9, 0.1, 0.9, 0.1, 0.9, 0.1, 0.9, 0.1, 0.9, 0.1, 0.9, 0.1, 0.9, 0.1, 0.9]
+  ],
+  "ticks": 1000000,
+  "num_processes": 16,
+  "log_freq": 1,
+  "output_dir": "results/hybrid_noise"
+}

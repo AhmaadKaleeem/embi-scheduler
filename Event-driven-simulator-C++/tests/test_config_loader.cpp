@@ -127,6 +127,7 @@ TEST(ConfigLoaderTest, LoadJSONExperimentConfig) {
         "workloads":     ["poisson"],
         "seeds":         [42, 123],
         "arrival_rates": [0.3, 0.5],
+        "arrival_rate_asymmetric_sweep": [[0.9, 0.5, 0.1], [0.8, 0.5, 0.2]],
         "ticks":         100000,
         "num_processes": 8,
         "M":             10.0,
@@ -142,7 +143,10 @@ TEST(ConfigLoaderTest, LoadJSONExperimentConfig) {
         EXPECT_EQ(exp.workloads.size(),  1UL);
         EXPECT_EQ(exp.seeds.size(),      2UL);
         EXPECT_EQ(exp.arrival_rates.size(), 2UL);
-        EXPECT_EQ(exp.totalRuns(), 2UL * 1UL * 2UL * 2UL);  // = 8
+        EXPECT_EQ(exp.arrival_rate_asymmetric_sweep.size(), 2UL);
+        EXPECT_EQ(exp.arrival_rate_asymmetric_sweep[0],
+                  (std::vector<double>{0.9, 0.5, 0.1}));
+        EXPECT_EQ(exp.totalRuns(), 2UL * 1UL * 2UL * 2UL * 2UL);  // = 16
     });
     std::filesystem::remove(path);
 }

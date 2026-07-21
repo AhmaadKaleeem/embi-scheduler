@@ -113,15 +113,27 @@ set(EMBI_CORE_SOURCES
     src/core/EventLoop.cpp
     src/core/Simulator.cpp
     src/core/Experiment.cpp
+    src/events/SyntheticEventSource.cpp
+    src/trace/AlibabaParser.cpp
+    src/trace/TraceValidator.cpp
+    src/trace/TraceAnalyzer.cpp
+    src/trace/TraceStore.cpp
+    src/trace/ReplayEngine.cpp
+    src/events/TraceReplaySource.cpp
 )
 
 set(EMBI_SCHEDULER_SOURCES
     src/schedulers/BaseScheduler.cpp
     src/schedulers/EMBIScheduler.cpp
+    src/schedulers/EMBIAblatedScheduler.cpp
     src/schedulers/MaxWeightScheduler.cpp
     src/schedulers/CmuScheduler.cpp
     src/schedulers/RoundRobinScheduler.cpp
     src/schedulers/FCFSScheduler.cpp
+    src/schedulers/HybridEMBIScheduler.cpp
+    src/schedulers/SJFScheduler.cpp
+    src/schedulers/CFSScheduler.cpp
+    src/schedulers/GSQScheduler.cpp
 )
 
 set(EMBI_WORKLOAD_SOURCES
@@ -178,6 +190,13 @@ add_executable(embi_sim src/main.cpp)
 target_link_libraries(embi_sim PRIVATE embi_lib)
 set_target_properties(embi_sim PROPERTIES
     OUTPUT_NAME "embi_sim"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+
+add_executable(embi_verify src/embi_verify.cpp)
+target_link_libraries(embi_verify PRIVATE embi_lib)
+set_target_properties(embi_verify PROPERTIES
+    OUTPUT_NAME "embi_verify"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 

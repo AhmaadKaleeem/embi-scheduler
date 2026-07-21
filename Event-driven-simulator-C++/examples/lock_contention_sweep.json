@@ -1,0 +1,26 @@
+{
+  "schedulers":    ["embi", "maxweight", "rr", "fcfs"],
+  "workloads":     ["lock_contention"],
+  "seeds":         [42, 123, 456, 789, 1011, 2022, 3033, 4044, 5055, 6066, 7077, 8088, 9099, 10101, 11111, 12121, 13131, 14141, 15151, 16161],
+  "arrival_rates": [0.5],
+  "arrival_rate_asymmetric_sweep": [
+    [0.9, 0.5, 0.1],
+    [0.85, 0.5, 0.15],
+    [0.8, 0.5, 0.2],
+    [0.75, 0.5, 0.25],
+    [0.7, 0.5, 0.3],
+    [0.65, 0.5, 0.35],
+    [0.6, 0.5, 0.4],
+    [0.55, 0.5, 0.45],
+    [0.5, 0.5, 0.5]
+  ],
+  "ticks":         100000,
+  "num_processes": 64,
+  "M":             10.0,
+  "num_locks":     4,
+  "lock_request_rate": 0.3,
+  "lock_hold_mean": 5.0,
+  "log_freq":      1000,
+  "null_log":      false,
+  "output_dir":    "results/lock_contention_sweep"
+}

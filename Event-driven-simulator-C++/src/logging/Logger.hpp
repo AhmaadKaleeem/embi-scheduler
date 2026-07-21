@@ -46,13 +46,19 @@ struct LogRecord {
     double      service_rate{0.0};   ///< true_service_rate
     double      lambda_hat{0.0};     ///< EWMA arrival estimate
     double      mu_hat{0.0};         ///< EWMA service estimate
-    double      scheduler_score{0.0};///< Score assigned by the scheduler
+    double      scheduler_score{0.0};///< Final/clipped Score assigned by the scheduler
+    double      raw_score{0.0};      ///< Raw unclipped score
     bool        chosen{false};       ///< True if this process was scheduled this tick
     double      waiting_time{0.0};   ///< Per-job waiting time (0 if not chosen)
     double      completion_time{0.0};///< Tick of last job completion
     double      throughput{0.0};     ///< Rolling throughput at this tick
     double      lyapunov_v{0.0};     ///< V(t) = Σ Q²
     double      lyapunov_drift{0.0}; ///< ΔV = V(t) − V(t-1)
+    
+    // Hybrid specific fields
+    double      gap{0.0};
+    double      tau{0.0};
+    int         branch{0};
 };
 
 // ─── Binary header ───────────────────────────────────────────────────────────
@@ -89,6 +95,7 @@ struct BinaryRecord {
     float    lambda_hat{0.0f};
     float    mu_hat{0.0f};
     float    scheduler_score{0.0f};
+    float    raw_score{0.0f};
     uint8_t  chosen{0};
     uint8_t  pad[3]{0, 0, 0};
     float    waiting_time{0.0f};
@@ -96,6 +103,9 @@ struct BinaryRecord {
     float    throughput{0.0f};
     float    lyapunov_v{0.0f};
     float    lyapunov_drift{0.0f};
+    float    gap{0.0f};
+    float    tau{0.0f};
+    int32_t  branch{0};
 };
 #pragma pack(pop)
 

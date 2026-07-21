@@ -29,8 +29,7 @@
 #include "logging/StatisticsDatabase.hpp"
 #include "schedulers/BaseScheduler.hpp"
 #include "schedulers/Decision.hpp"
-#include "workloads/BaseWorkload.hpp"
-#include "workloads/LockContentionWorkload.hpp"
+#include "events/IEventSource.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -39,6 +38,8 @@
 #include <vector>
 
 namespace embi {
+
+class LockContentionWorkload;
 
 /**
  * @class EventLoop
@@ -58,7 +59,7 @@ public:
      * @brief Constructs the EventLoop and pre-allocates all internal vectors.
      *
      * @param config           Simulation configuration.
-     * @param workload         Non-owning pointer to the workload generator.
+     * @param event_source     Non-owning pointer to the event source.
      * @param scheduler        Non-owning pointer to the scheduler.
      * @param online_metrics   Non-owning pointer to the online metrics accumulator.
      * @param offline_metrics  Non-owning pointer to the offline metrics accumulator.
@@ -66,7 +67,7 @@ public:
      * @complexity O(N) for pre-allocation.
      */
     EventLoop(const Config&       config,
-              BaseWorkload*       workload,
+              IEventSource*       event_source,
               BaseScheduler*      scheduler,
               OnlineMetrics*      online_metrics,
               OfflineMetrics*     offline_metrics,
@@ -97,7 +98,7 @@ public:
 private:
     // ─── Dependencies (non-owning) ────────────────────────────────────────────
     const Config&       config_;
-    BaseWorkload*       workload_;
+    IEventSource*       event_source_;
     BaseScheduler*      scheduler_;
     OnlineMetrics*      online_metrics_;
     OfflineMetrics*     offline_metrics_;
@@ -106,14 +107,12 @@ private:
     // ─── State ─────────────────────────────────────────────────────────────────────────
     std::vector<Process>  processes_;           ///< All simulated processes.
     EventQueue            event_queue_;         ///< Priority queue for events.
-    std::vector<double>   next_arrival_tick_;   ///< Per-process next-arrival counter.
     std::optional<std::size_t> prev_decision_;  ///< PID chosen last tick.
     Decision              last_decision_;       ///< Shared across event handlers.
 
     // ─── Lock-contention state (null unless workload == lock_contention) ─────────
     std::unique_ptr<LockManager>         lock_mgr_;             ///< Lock pool.
-    LockContentionWorkload*              lock_workload_{nullptr}; ///< Non-owning cast.
-    std::vector<double>                  next_lock_req_tick_;   ///< Per-process next lock-request timer.
+    LockContentionWorkload*              lock_workload_{nullptr};
 
     // ─── Event handlers ────────────────────────────────────────────────────────────
     void handleArrivalEvent    (const Event& e, uint64_t tick);

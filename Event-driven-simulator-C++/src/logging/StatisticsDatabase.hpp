@@ -122,6 +122,24 @@ public:
                             const OfflineReport&  offline_report) const;
 
     /**
+     * @brief Exports the raw V(t) trace for plotting.
+     */
+    void exportLyapunovTrace(const std::string& path,
+                             const OfflineReport& offline_report,
+                             const std::vector<double>& v_samples) const;
+
+    /**
+     * @brief Exports the raw hybrid diagnostic trace for plotting.
+     */
+    void exportHybridTrace(const std::string& path,
+                           const OfflineReport& offline_report) const;
+
+    /**
+     * @brief Exports a machine-readable artifact manifest.
+     */
+    void exportManifest(const std::string& path) const;
+
+    /**
      * @brief Returns the underlying logger's type name.
      */
     [[nodiscard]] std::string loggerType() const noexcept;

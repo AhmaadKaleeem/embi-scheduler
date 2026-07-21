@@ -32,6 +32,7 @@ struct RunSummary {
     std::string workload_name;
     uint64_t    seed{0};
     double      arrival_rate{0.0};
+    std::vector<double> arrival_rate_asymmetric;
     OnlineSnapshot online;
     OfflineReport  offline;
 };

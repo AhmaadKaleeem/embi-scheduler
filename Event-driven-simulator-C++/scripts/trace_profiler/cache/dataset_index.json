@@ -1,0 +1,185 @@
+{
+  "Ali Baba_0to30_Min.csv": {
+    "name": "Ali Baba_0to30_Min.csv",
+    "path": "d:\\Ahmad\\Startup\\EMBI Scheduling Framework\\dataset\\Ali Baba_0to30_Min.csv",
+    "file_type": ".csv",
+    "size_bytes": 1153022076,
+    "modified_time": 1683090136.0,
+    "sha256": "fa698d9093f722a6fec1c37524bc3ddbc35bfd9b5d9589ca243b7e88b6e5111e",
+    "parser": "pyarrow.csv",
+    "version": "1.0",
+    "estimated_rows": 14170641,
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "compression": null,
+    "schema": {
+      "timestamp": "int",
+      "msname": "str",
+      "msinstanceid": "str",
+      "nodeid": "str",
+      "cpu_utilization": "float",
+      "memory_utilization": "float"
+    },
+    "statistics": {
+      "row_count": 627150,
+      "columns_found": 6
+    },
+    "profile": {
+      "total_rows_scanned": 125418,
+      "missing_values": {
+        "cpu_utilization": 12,
+        "memory_utilization": 6
+      }
+    }
+  },
+  "AliBaba_31-60_Min.csv": {
+    "name": "AliBaba_31-60_Min.csv",
+    "path": "d:\\Ahmad\\Startup\\EMBI Scheduling Framework\\dataset\\AliBaba_31-60_Min.csv",
+    "file_type": ".csv",
+    "size_bytes": 1163873686,
+    "modified_time": 1683089929.0,
+    "sha256": "35322ab5e00fb73b757f96921dd00b2ff1e8fa389daa39edaa1ce0c1fe3eb574",
+    "parser": "pyarrow.csv",
+    "version": "1.0",
+    "estimated_rows": 14106149,
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "compression": null,
+    "schema": {
+      "timestamp": "int",
+      "msname": "str",
+      "msinstanceid": "str",
+      "nodeid": "str",
+      "cpu_utilization": "float",
+      "memory_utilization": "float"
+    },
+    "statistics": {
+      "row_count": 621081,
+      "columns_found": 6
+    },
+    "profile": {
+      "total_rows_scanned": 124200,
+      "missing_values": {
+        "cpu_utilization": 21,
+        "memory_utilization": 20
+      }
+    }
+  },
+  "AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt": {
+    "name": "AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt",
+    "path": "d:\\Ahmad\\Startup\\EMBI Scheduling Framework\\dataset\\AzureFunctionsInvocationTraceForTwoWeeksJan2021.txt",
+    "file_type": ".txt",
+    "size_bytes": 305388316,
+    "modified_time": 1638336627.9067125,
+    "sha256": "363d89fdf5e887f1d2989b5665e088b86fd5c2e34c215eea52b684e457dd137c",
+    "parser": "pyarrow.csv",
+    "version": "1.0",
+    "estimated_rows": 1975862,
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "compression": null,
+    "schema": {
+      "app": "str",
+      "func": "str",
+      "end_timestamp": "float",
+      "duration": "float"
+    },
+    "statistics": {
+      "row_count": 331443,
+      "columns_found": 4
+    },
+    "profile": {
+      "total_rows_scanned": 132730,
+      "missing_values": {}
+    }
+  },
+  "Google_Instance_Events_2019_Cluster_Data.json": {
+    "name": "Google_Instance_Events_2019_Cluster_Data.json",
+    "path": "d:\\Ahmad\\Startup\\EMBI Scheduling Framework\\dataset\\Google_Instance_Events_2019_Cluster_Data.json",
+    "file_type": ".json",
+    "size_bytes": 9013670131,
+    "modified_time": 1784553429.5711646,
+    "sha256": "3797939eda7ec3615f719ec7b624bf98c8a7d2d9d194c92a5ca78a0830b43783",
+    "parser": "ijson",
+    "version": "1.0",
+    "estimated_rows": 29024017,
+    "delimiter": null,
+    "encoding": "utf-8",
+    "compression": null,
+    "schema": {},
+    "statistics": {
+      "row_count": 100000,
+      "columns_found": 0
+    },
+    "profile": {
+      "total_rows_scanned": 100000,
+      "missing_values": {}
+    }
+  },
+  "MSMetrics_3.csv": {
+    "name": "MSMetrics_3.csv",
+    "path": "d:\\Ahmad\\Startup\\EMBI Scheduling Framework\\dataset\\Irrelevant\\alibaba_trace\\alibaba_trace\\Other Data\\MSMetrics_3\\MSMetrics_3.csv",
+    "file_type": ".csv",
+    "size_bytes": 1164529631,
+    "modified_time": 1683089917.0,
+    "sha256": "287e7c3ba242b70ce8f5a563aab46fbff3505e7b29117413ab269c1d8fbfdb28",
+    "parser": "pyarrow.csv",
+    "version": "1.0",
+    "estimated_rows": 14090808,
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "compression": null,
+    "schema": {
+      "timestamp": "int",
+      "msname": "str",
+      "msinstanceid": "str",
+      "nodeid": "str",
+      "cpu_utilization": "float",
+      "memory_utilization": "float"
+    },
+    "statistics": {
+      "row_count": 620484,
+      "columns_found": 6
+    },
+    "profile": {
+      "total_rows_scanned": 124085,
+      "missing_values": {
+        "cpu_utilization": 5,
+        "memory_utilization": 5
+      }
+    }
+  },
+  "MSMetrics_4.csv": {
+    "name": "MSMetrics_4.csv",
+    "path": "d:\\Ahmad\\Startup\\EMBI Scheduling Framework\\dataset\\Irrelevant\\alibaba_trace\\alibaba_trace\\Other Data\\MSMetrics_4\\MSMetrics_4.csv",
+    "file_type": ".csv",
+    "size_bytes": 1163768648,
+    "modified_time": 1683090037.0,
+    "sha256": "692df19aea98769d6f2e58cccbcac40b20fdbcbe0cf1312dde0f70c7fdece3bb",
+    "parser": "pyarrow.csv",
+    "version": "1.0",
+    "estimated_rows": 14093238,
+    "delimiter": ",",
+    "encoding": "utf-8",
+    "compression": null,
+    "schema": {
+      "timestamp": "int",
+      "msname": "str",
+      "msinstanceid": "str",
+      "nodeid": "str",
+      "cpu_utilization": "float",
+      "memory_utilization": "float"
+    },
+    "statistics": {
+      "row_count": 620618,
+      "columns_found": 6
+    },
+    "profile": {
+      "total_rows_scanned": 124127,
+      "missing_values": {
+        "cpu_utilization": 4,
+        "memory_utilization": 2
+      }
+    }
+  }
+}

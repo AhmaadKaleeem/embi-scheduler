@@ -1,0 +1,28 @@
+# Build and Binaries
+/build*/
+/out/
+/bin/
+*.exe
+*.pdb
+*.ilk
+*.dll
+*.lib
+
+# Output Data and Logs
+/results/
+/output/
+
+# Temporary files
+temp_*.json
+*.tmp
+*.log
+
+# Python Caches
+__pycache__/
+*.pyc
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+*.swp

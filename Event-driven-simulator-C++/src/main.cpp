@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
                       << "\n== Results ==\n"
                       << "  Avg Waiting Time  : " << results.offline.avg_waiting_time   << " ticks\n"
                       << "  P99 Waiting Time  : " << results.offline.p99_waiting_time   << " ticks\n"
-                      << "  Throughput        : " << results.online.throughput           << " jobs/tick\n"
+                      << "  Throughput        : " << results.offline.total_throughput      << " jobs/tick\n"
                       << "  CPU Utilization   : " << results.online.utilization * 100.0  << " %\n"
                       << "  Jain Fairness     : " << results.offline.jain_fairness_index << "\n"
                       << "  Lyapunov V(final) : " << results.online.lyapunov_v          << "\n\n"

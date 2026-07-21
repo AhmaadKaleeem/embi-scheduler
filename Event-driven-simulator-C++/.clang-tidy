@@ -1,0 +1,6 @@
+---
+Checks:          '-*,cppcoreguidelines-*,modernize-*,performance-*,readability-*,bugprone-*,-modernize-use-trailing-return-type'
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle:     none
+...

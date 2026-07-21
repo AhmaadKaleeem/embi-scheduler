@@ -1,33 +1,33 @@
+# Datasets
+/Dataset/
+/datasets/
+
+# Build
+/build*/
+/out/
+/bin/
+*.exe
+*.pdb
+*.ilk
+
+# Results and Figures (keep directories but ignore contents)
+/results/*
+!/results/.gitkeep
+/figs/*
+!/figs/.gitkeep
+/output/
+
+# Temp
+temp_*.json
+
+# CMake and Python caches
+CMakeCache.txt
+CMakeFiles/
 __pycache__/
 *.pyc
 
-# C++
-build/
-build_*/
-*.o
-*.exe
-*.out
-
-# CMake
-CMakeCache.txt
-CMakeFiles/
-Makefile
-cmake_install.cmake
-compile_commands.json
-
-# Results
-results/*.csv
-results/*.png
-results/*.bin
-results/*.json
-results/*.txt
-output/
-
-# IDE
+# OS and IDE
 .vscode/
 .idea/
-*.swp
-
-# OS
 .DS_Store
-Thumbs.db
+*.swp

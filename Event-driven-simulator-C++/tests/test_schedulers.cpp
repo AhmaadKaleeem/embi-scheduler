@@ -249,9 +249,9 @@ TEST(FCFSSchedulerTest, SelectsEarliestArrival) {
     Config cfg = makeConfig();
     auto procs = makeProcesses(3);
 
-    procs[0].first_arrival_time = 10.0;  procs[0].queue_length = 1;
-    procs[1].first_arrival_time = 5.0;   procs[1].queue_length = 1;  // ← earliest
-    procs[2].first_arrival_time = 8.0;   procs[2].queue_length = 1;
+    procs[0].arrival(10.0);
+    procs[1].arrival(5.0);
+    procs[2].arrival(8.0);
 
     FCFSScheduler sched(cfg);
     Decision d = sched.choose(makeContext(procs, cfg));
@@ -264,15 +264,34 @@ TEST(FCFSSchedulerTest, BreaksTiesByPID) {
     Config cfg = makeConfig();
     auto procs = makeProcesses(3);
 
-    procs[0].first_arrival_time = 5.0;  procs[0].queue_length = 1;
-    procs[1].first_arrival_time = 5.0;  procs[1].queue_length = 1;
-    procs[2].first_arrival_time = 5.0;  procs[2].queue_length = 1;
+    procs[0].arrival(5.0);
+    procs[1].arrival(5.0);
+    procs[2].arrival(5.0);
 
     FCFSScheduler sched(cfg);
     Decision d = sched.choose(makeContext(procs, cfg));
 
     EXPECT_TRUE(d.valid);
     EXPECT_EQ(d.chosen_pid, 0UL);  // lowest PID wins on tie
+}
+
+TEST(FCFSSchedulerTest, LockContentionSkipsQueuedNonHolders) {
+    Config cfg = makeConfig();
+    cfg.workload_name = "lock_contention";
+    auto procs = makeProcesses(3);
+
+    procs[0].arrival(1.0);
+    procs[0].lock_state.holds_lock = false;
+    procs[1].arrival(2.0);
+    procs[1].lock_state.holds_lock = true;
+    procs[2].arrival(3.0);
+    procs[2].lock_state.holds_lock = true;
+
+    FCFSScheduler sched(cfg);
+    Decision d = sched.choose(makeContext(procs, cfg));
+
+    EXPECT_TRUE(d.valid);
+    EXPECT_EQ(d.chosen_pid, 1UL);
 }
 
 // ─── Decision diagnostics ─────────────────────────────────────────────────────

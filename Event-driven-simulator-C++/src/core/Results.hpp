@@ -13,6 +13,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace embi {
 
@@ -28,6 +29,7 @@ struct Results {
     std::string    workload_name;   ///< Name of the workload used.
     uint64_t       seed{0};         ///< PRNG seed used.
     double         arrival_rate{0.0}; ///< Configured arrival rate.
+    std::vector<double> arrival_rate_asymmetric; ///< Optional per-process rates.
 
     OnlineSnapshot online;          ///< Final online metrics snapshot.
     OfflineReport  offline;         ///< Post-simulation offline report.

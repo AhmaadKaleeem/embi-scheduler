@@ -90,6 +90,11 @@ CLIResult CLI::parse(int argc, char* argv[]) {
             cfg.scheduler_name = argv[i];
             continue;
         }
+        if (arg == "--no-clip") {
+            cfg.embi_clipped = false;
+            cfg.scheduler_name = "embi_unclipped";
+            continue;
+        }
 
         // ── Workload ──────────────────────────────────────────────────────────
         if (arg == "--workload") {
@@ -169,12 +174,26 @@ CLIResult CLI::parse(int argc, char* argv[]) {
             cfg.beta = toDouble(arg.c_str(), argv[i]);
             continue;
         }
+        if (arg == "--lambda-noise") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.lambda_noise_stddev = toDouble(arg.c_str(), argv[i]);
+            continue;
+        }
         if (arg == "--M") {
             expect_arg(arg.c_str(), ++i, argc);
             cfg.M = toDouble(arg.c_str(), argv[i]);
             continue;
         }
-
+        if (arg == "--epsilon-total") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.epsilon_total = toDouble(arg.c_str(), argv[i]);
+            continue;
+        }
+        if (arg == "--tau-constant") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.tau_constant_bound = toDouble(arg.c_str(), argv[i]);
+            continue;
+        }
         // ── Workload-specific ─────────────────────────────────────────────────
         if (arg == "--pareto-shape") {
             expect_arg(arg.c_str(), ++i, argc);

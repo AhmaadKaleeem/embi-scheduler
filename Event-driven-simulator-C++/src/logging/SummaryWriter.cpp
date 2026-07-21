@@ -33,6 +33,17 @@ std::string fmtDouble(double v, int prec = 4) {
     return oss.str();
 }
 
+std::string fmtRates(const std::vector<double>& rates) {
+    if (rates.empty()) return "";
+
+    std::ostringstream oss;
+    for (std::size_t i = 0; i < rates.size(); ++i) {
+        if (i > 0) oss << ",";
+        oss << fmtDouble(rates[i], 2);
+    }
+    return oss.str();
+}
+
 } // anonymous namespace
 
 void SummaryWriter::writeComparativeTable(const std::string&             path,
@@ -59,6 +70,7 @@ void SummaryWriter::writeComparativeTable(const std::string&             path,
     f << col("Scheduler",  14)
       << col("Workload",   12)
       << col("Rate",       8)
+      << col("Asym",       20)
       << col("AvgWait",    10)
       << col("P99",        10)
       << col("Throughput", 12)
@@ -67,13 +79,14 @@ void SummaryWriter::writeComparativeTable(const std::string&             path,
       << col("P99-P50",    10)
       << "\n";
 
-    f << std::string(94, '-') << "\n";
+    f << std::string(114, '-') << "\n";
 
     for (const auto* rs : sorted) {
         double p99_p50 = rs->offline.p99_waiting_time - rs->offline.p50_waiting_time;
         f << col(rs->scheduler_name,               14)
           << col(rs->workload_name,                 12)
           << col(fmtDouble(rs->arrival_rate, 2),    8)
+          << col(fmtRates(rs->arrival_rate_asymmetric), 20)
           << col(fmtDouble(rs->offline.avg_waiting_time), 10)
           << col(fmtDouble(rs->offline.p99_waiting_time), 10)
           << col(fmtDouble(rs->online.throughput),   12)
@@ -96,6 +109,7 @@ void SummaryWriter::writeJSONSummary(const std::string&             path,
         entry["workload"]        = rs.workload_name;
         entry["seed"]            = rs.seed;
         entry["arrival_rate"]    = rs.arrival_rate;
+        entry["arrival_rate_asymmetric"] = rs.arrival_rate_asymmetric;
         entry["avg_waiting_time"]= rs.offline.avg_waiting_time;
         entry["p50"]             = rs.offline.p50_waiting_time;
         entry["p95"]             = rs.offline.p95_waiting_time;
@@ -111,6 +125,7 @@ void SummaryWriter::writeJSONSummary(const std::string&             path,
         entry["oscillation"]     = rs.offline.oscillation_frequency;
         entry["steady_state"]    = rs.offline.time_to_steady_state;
         entry["context_switches"]= rs.offline.context_switch_rate;
+        entry["hybrid_fraction"] = rs.online.hybrid_embi_fraction;
         j.push_back(entry);
     }
 

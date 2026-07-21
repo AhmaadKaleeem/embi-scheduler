@@ -28,7 +28,8 @@ namespace embi {
 
 /// Compile-time list of all supported scheduler identifiers.
 inline constexpr const char* kValidSchedulers[] = {
-    "embi", "embi_unclipped", "maxweight", "cmu", "rr", "fcfs"};
+    "embi", "embi_unclipped", "embi_ablated", "maxweight", "cmu", "rr", "fcfs", "hybrid_embi",
+    "sjf", "cfs", "gsq"};
 
 /// Compile-time list of all supported workload identifiers.
 inline constexpr const char* kValidWorkloads[] = {
@@ -81,7 +82,10 @@ struct Config {
     double service_rate{1.0};   ///< Mean jobs completed per tick (≤ 1 for unit service).
     double alpha{0.1};          ///< EWMA smoothing factor for arrival rate estimates.
     double beta{0.1};           ///< EWMA smoothing factor for service rate estimates.
+    double lambda_noise_stddev{0.0}; ///< Standard deviation of Gaussian noise injected into arrival estimate.
     double M{10.0};             ///< EMBI service-capacity bound (independent of N).
+    double epsilon_total{0.05}; ///< Theoretical estimation error bound for tau(X).
+    double tau_constant_bound{0.0}; ///< O(1) constant term for Hybrid threshold tau(X).
 
     // ── Workload-specific ─────────────────────────────────────────────────────
     double uniform_lo{0.5};        ///< U(lo, hi) inter-arrival lower bound (ticks).
@@ -183,7 +187,15 @@ struct ExperimentConfig {
     double      burst_off_rate{0.05};
     double      burst_p_on_off{0.1};
     double      burst_p_off_on{0.3};
+    std::vector<double> arrival_rate_asymmetric;
     std::optional<std::string> trace_file;
+    std::size_t num_locks{4};
+    double      lock_request_rate{0.3};
+    double      lock_hold_mean{5.0};
+    std::vector<std::vector<double>> arrival_rate_asymmetric_sweep;
+    std::vector<double> epsilon_totals;
+    std::vector<double> tau_constant_bounds;
+    std::vector<double> lambda_noise_stddevs;
 
     // ── Output ────────────────────────────────────────────────────────────────
     std::string output_dir{"results"};

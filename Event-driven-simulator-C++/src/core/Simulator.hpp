@@ -17,8 +17,7 @@
 #include "core/Results.hpp"
 #include "logging/StatisticsDatabase.hpp"
 #include "schedulers/BaseScheduler.hpp"
-#include "workloads/BaseWorkload.hpp"
-
+#include "events/IEventSource.hpp"
 #include <memory>
 
 namespace embi {
@@ -57,14 +56,15 @@ public:
      * Use this constructor for testing — allows mocking the workload and
      * scheduler without touching filesystem or logger.
      *
-     * @param config    Validated configuration.
-     * @param workload  Owning pointer to a workload generator.
-     * @param scheduler Owning pointer to a scheduler.
-     * @param stats_db  Owning pointer to a statistics database.
+     * @param config    Full simulation parameters.
+     * @param event_source Hand-crafted event source generator.
+     * @param scheduler Hand-crafted scheduler.
+     * @param stats_db  Hand-crafted logger instance.
+     * @complexity O(1)
      */
-    Simulator(const Config&                     config,
-              std::unique_ptr<BaseWorkload>      workload,
-              std::unique_ptr<BaseScheduler>     scheduler,
+    Simulator(const Config&                       config,
+              std::unique_ptr<IEventSource>       event_source,
+              std::unique_ptr<BaseScheduler>      scheduler,
               std::unique_ptr<StatisticsDatabase> stats_db);
 
     // ─── Primary interface ────────────────────────────────────────────────────
@@ -94,15 +94,15 @@ public:
 
 private:
     Config                             config_;
-    std::unique_ptr<BaseWorkload>      workload_;
+    std::unique_ptr<IEventSource>      event_source_;
     std::unique_ptr<BaseScheduler>     scheduler_;
     std::unique_ptr<OnlineMetrics>     online_metrics_;
     std::unique_ptr<OfflineMetrics>    offline_metrics_;
     std::unique_ptr<StatisticsDatabase> stats_db_;
 
-    /// Builds the workload from config.workload_name / workload_profile.
-    [[nodiscard]] static std::unique_ptr<BaseWorkload>
-    buildWorkload(const Config& config);
+    /// Builds the event source from config
+    [[nodiscard]] static std::unique_ptr<IEventSource>
+    buildEventSource(const Config& config);
 
     /// Builds the scheduler from config.scheduler_name.
     [[nodiscard]] static std::unique_ptr<BaseScheduler>

@@ -120,7 +120,12 @@ void StatisticsDatabase::writeSummaryTxt(const std::string&    path,
       << "  Max Waiting Time  : " << r.max_waiting_time   << " ticks\n"
       << "  Avg Turnaround    : " << r.avg_turnaround_time << " ticks\n\n";
 
-    f << "── Fairness ─────────────────────────────────────────────────\n"
+    f << "── Stability ────────────────────────────────────────────────────────\n"
+      << "  Avg Lyapunov V(t) : " << r.avg_lyapunov_v       << "\n"
+      << "  Max Lyapunov V(t) : " << r.max_lyapunov_v       << "\n"
+      << "  Oscillation Freq  : " << r.oscillation_frequency << " / 1000 ticks\n\n";
+
+    f << "── Fairness ─────────────────────────────────────────────────────────\n"
       << "  Jain Fairness Index  : " << r.jain_fairness_index     << "\n"
       << "  Max Starvation       : " << r.max_starvation_ticks    << " ticks\n"
       << "  Avg Starvation       : " << r.avg_starvation_ticks    << " ticks\n"
@@ -184,6 +189,13 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["latency"]["max_waiting_time"]  = r.max_waiting_time;
     j["latency"]["avg_turnaround"]    = r.avg_turnaround_time;
 
+    // Stability
+    j["stability"]["avg_lyapunov_v"]        = r.avg_lyapunov_v;
+    j["stability"]["max_lyapunov_v"]        = r.max_lyapunov_v;
+    j["stability"]["time_to_steady_state"]  = r.time_to_steady_state;
+    j["stability"]["oscillation_frequency"] = r.oscillation_frequency;
+    j["stability"]["recovery_time"]         = r.recovery_time_after_burst;
+
     // Fairness
     j["fairness"]["jain_index"]        = r.jain_fairness_index;
     j["fairness"]["max_starvation"]    = r.max_starvation_ticks;
@@ -206,6 +218,11 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["scheduler_diag"]["avg_score_variance"] = r.avg_score_variance;
     j["scheduler_diag"]["context_switch_rate"]= r.context_switch_rate;
     j["scheduler_diag"]["total_throughput"]   = r.total_throughput;
+    j["scheduler_diag"]["hybrid_embi_ratio"]  = r.hybrid_embi_mode_ratio;
+    j["scheduler_diag"]["hybrid_mw_ratio"]    = r.hybrid_mw_mode_ratio;
+    j["scheduler_diag"]["avg_tau"]            = r.avg_tau;
+    j["scheduler_diag"]["avg_gap"]            = r.avg_gap;
+    j["scheduler_diag"]["avg_eta_c"]          = r.avg_eta_c;
 
     // Aggregate statistics (from multi-seed runs if available)
     for (const auto& metric : stats_.metricNames()) {
@@ -223,6 +240,54 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
 
 std::string StatisticsDatabase::loggerType() const noexcept {
     return logger_->typeName();
+}
+
+// ─── V(t) Trace ────────────────────────────────────────────────────────────
+
+void StatisticsDatabase::exportLyapunovTrace(const std::string& path,
+                                             const OfflineReport& /*r*/,
+                                             const std::vector<double>& v_samples) const {
+    std::ofstream f(path);
+    if (!f.is_open()) return;
+
+    f << "sample_index,tick_approx,v\n";
+    std::size_t i = 0;
+    for (double v : v_samples) {
+        f << i++ << ",0," << v << "\n";
+    }
+}
+
+void StatisticsDatabase::exportHybridTrace(const std::string& path,
+                                           const OfflineReport& offline_report) const {
+    if (offline_report.hybrid_samples.empty()) return;
+    
+    std::ofstream f(path);
+    if (!f.is_open()) return;
+    
+    f << "tick,tau,gap,mode\n";
+    for (const auto& sample : offline_report.hybrid_samples) {
+        f << sample.tick << "," << sample.tau << "," << sample.gap << "," << sample.mode << "\n";
+    }
+}
+
+void StatisticsDatabase::exportManifest(const std::string& path) const {
+    nlohmann::json j;
+    j["git_commit"]    = "development"; // can be populated via CMake in the future
+    j["compiler"]      = "C++17";
+    j["os"]            = "Windows";
+    j["seed"]          = config_.seed;
+    j["scheduler"]     = config_.scheduler_name;
+    j["workload"]      = config_.workload_name;
+    j["paper_version"] = "v1";
+    
+    // basic config info
+    j["config"]["ticks"] = config_.ticks;
+    j["config"]["num_processes"] = config_.num_processes;
+    j["config"]["epsilon_total"] = config_.epsilon_total;
+    
+    std::ofstream f(path);
+    if (!f.is_open()) return;
+    f << j.dump(2);
 }
 
 } // namespace embi

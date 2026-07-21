@@ -27,8 +27,8 @@ Decision MaxWeightScheduler::choose(const SchedulerContext& ctx) {
 
     std::vector<double> scores(N);
     for (std::size_t i = 0; i < N; ++i) {
-        // MaxWeight: service_rate × queue_length
-        scores[i] = procs[i].mu_hat * static_cast<double>(procs[i].queue_length);
+        // MaxWeight score: μ_i * Q_i
+        scores[i] = procs[i].mu_hat * static_cast<double>(procs[i].queue_length + procs[i].sync_debt);
     }
 
     Decision d;

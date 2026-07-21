@@ -1,0 +1,25 @@
+# Default Simulator Configuration
+
+simulator:
+  ticks: 1000000
+  num_processes: 64
+  seed: 42
+  log_freq: 1
+  binary_log: false
+  null_log: false
+
+scheduler:
+  type: "embi"        # embi, embi_unclipped, maxweight, cmu, rr, fcfs
+  M: 10.0
+  no_clip: false
+
+workload:
+  type: "poisson"     # uniform, poisson, bursty, heavy_tail, trace
+  profile: "web_server"
+  arrival_rate: 0.5
+  service_rate: 1.0
+  alpha: 0.1          # EWMA arrival smoothing
+  beta: 0.1           # EWMA service smoothing
+
+output:
+  directory: "output"

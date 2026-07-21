@@ -1,0 +1,16 @@
+{
+  "schedulers": ["embi", "maxweight", "rr", "fcfs"],
+  "workloads": ["lock_contention"],
+  "seeds": [1,2,3,4,5,6,7,8,9,10],
+  "arrival_rates": [0.5],
+  "arrival_rate_asymmetric_sweep": [[0.5, 0.5, 0.5]],
+  "ticks": 100000,
+  "num_processes": 1024,
+  "M": 10.0,
+  "num_locks": 64, 
+  "lock_request_rate": 0.3,
+  
+  "lock_hold_mean": 5.0,
+  "null_log": true,
+  "output_dir": "results/exp5_scalability"
+}

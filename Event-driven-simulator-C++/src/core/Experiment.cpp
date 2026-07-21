@@ -82,6 +82,7 @@ void Experiment::writeSummary(const std::string& output_dir) const {
         rs.workload_name  = r.workload_name;
         rs.seed           = r.seed;
         rs.arrival_rate   = r.arrival_rate;
+        rs.arrival_rate_asymmetric = r.arrival_rate_asymmetric;
         rs.online         = r.online;
         rs.offline        = r.offline;
         summaries.push_back(std::move(rs));

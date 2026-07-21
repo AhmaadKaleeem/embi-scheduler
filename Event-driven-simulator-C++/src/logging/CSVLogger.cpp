@@ -37,8 +37,8 @@ CSVLogger::~CSVLogger() {
 
 void CSVLogger::writeHeader() {
     file_ << "tick,pid,queue,arrival,service,lambda_hat,mu_hat,"
-             "scheduler_score,chosen,waiting_time,completion_time,"
-             "throughput,V,drift\n";
+             "scheduler_score,raw_score,chosen,waiting_time,completion_time,"
+             "throughput,V,drift,gap,tau,branch\n";
 }
 
 void CSVLogger::write(const LogRecord& r) {
@@ -55,12 +55,16 @@ void CSVLogger::write(const LogRecord& r) {
         << r.lambda_hat    << ','
         << r.mu_hat        << ','
         << r.scheduler_score << ','
+        << r.raw_score     << ','
         << (r.chosen ? 1 : 0) << ','
         << r.waiting_time  << ','
         << r.completion_time << ','
         << r.throughput    << ','
         << r.lyapunov_v    << ','
-        << r.lyapunov_drift
+        << r.lyapunov_drift << ','
+        << r.gap           << ','
+        << r.tau           << ','
+        << r.branch
         << '\n';
 
     buffer_.push_back(oss.str());

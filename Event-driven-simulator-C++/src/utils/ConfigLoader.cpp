@@ -131,6 +131,8 @@ void applyYAMLToConfig(const std::unordered_map<std::string, std::string>& m, Co
     if (has("alpha"))           cfg.alpha           = toDouble("alpha", it("alpha"));
     if (has("beta"))            cfg.beta            = toDouble("beta", it("beta"));
     if (has("M"))               cfg.M               = toDouble("M", it("M"));
+    if (has("epsilon_total"))   cfg.epsilon_total   = toDouble("epsilon_total", it("epsilon_total"));
+    if (has("tau_constant_bound")) cfg.tau_constant_bound = toDouble("tau_constant_bound", it("tau_constant_bound"));
     if (has("pareto_shape"))    cfg.pareto_shape    = toDouble("pareto_shape", it("pareto_shape"));
     if (has("pareto_scale"))    cfg.pareto_scale    = toDouble("pareto_scale", it("pareto_scale"));
     if (has("burst_on_rate"))   cfg.burst_on_rate   = toDouble("burst_on_rate", it("burst_on_rate"));
@@ -224,6 +226,8 @@ Config ConfigLoader::loadJSON(const std::string& path) {
     get("alpha",          cfg.alpha);
     get("beta",           cfg.beta);
     get("M",              cfg.M);
+    get("epsilon_total",  cfg.epsilon_total);
+    get("tau_constant_bound", cfg.tau_constant_bound);
     get("pareto_shape",   cfg.pareto_shape);
     get("pareto_scale",   cfg.pareto_scale);
     get("burst_on_rate",  cfg.burst_on_rate);
@@ -236,6 +240,8 @@ Config ConfigLoader::loadJSON(const std::string& path) {
     get("binary_log",     cfg.binary_log);
     get("null_log",       cfg.null_log);
     get("embi_clipped",   cfg.embi_clipped);
+    if (j.contains("arrival_rate_asymmetric") && j["arrival_rate_asymmetric"].is_array())
+        cfg.arrival_rate_asymmetric = j["arrival_rate_asymmetric"].get<std::vector<double>>();
 
     // String fields
     if (j.contains("scheduler") && j["scheduler"].is_string())
@@ -286,6 +292,15 @@ ExperimentConfig ConfigLoader::loadExperimentJSON(const std::string& path) {
         exp.arrival_rates = j["arrival_rates"].get<std::vector<double>>();
     if (j.contains("arrival_rate_range") && j["arrival_rate_range"].is_array())
         exp.arrival_rates = j["arrival_rate_range"].get<std::vector<double>>();
+    if (j.contains("arrival_rate_asymmetric") && j["arrival_rate_asymmetric"].is_array())
+        exp.arrival_rate_asymmetric = j["arrival_rate_asymmetric"].get<std::vector<double>>();
+    if (j.contains("arrival_rate_asymmetric_sweep") && j["arrival_rate_asymmetric_sweep"].is_array())
+        exp.arrival_rate_asymmetric_sweep =
+            j["arrival_rate_asymmetric_sweep"].get<std::vector<std::vector<double>>>();
+    if (j.contains("epsilon_totals") && j["epsilon_totals"].is_array())
+        exp.epsilon_totals = j["epsilon_totals"].get<std::vector<double>>();
+    if (j.contains("tau_constant_bounds") && j["tau_constant_bounds"].is_array())
+        exp.tau_constant_bounds = j["tau_constant_bounds"].get<std::vector<double>>();
 
     // ── Scalar fields ────────────────────────────────────────────────────────
     auto get = [&](const char* key, auto& field) {
@@ -310,6 +325,9 @@ ExperimentConfig ConfigLoader::loadExperimentJSON(const std::string& path) {
     get("log_freq",       exp.log_freq);
     get("binary_log",     exp.binary_log);
     get("null_log",       exp.null_log);
+    get("num_locks",      exp.num_locks);
+    get("lock_request_rate", exp.lock_request_rate);
+    get("lock_hold_mean", exp.lock_hold_mean);
 
     if (j.contains("output_dir") && j["output_dir"].is_string())
         exp.output_dir = j["output_dir"].get<std::string>();

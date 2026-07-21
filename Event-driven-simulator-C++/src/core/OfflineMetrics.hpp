@@ -80,11 +80,29 @@ struct OfflineReport {
     double time_to_steady_state{-1.0};   ///< Tick when queue variance stabilised (-1 if not)
     double oscillation_frequency{0.0};   ///< Zero crossings of ΔV per 1000 ticks
     double recovery_time_after_burst{0.0};  ///< Mean ticks to recover after burst
+    double avg_lyapunov_v{0.0};          ///< Time-averaged Lyapunov potential V_avg
+    double max_lyapunov_v{0.0};          ///< Maximum observed Lyapunov potential V_max
+    std::vector<double> v_samples;       ///< V(t) samples taken throughout run
 
     // ── Scheduler ─────────────────────────────────────────────────────────────
     double avg_decision_entropy{0.0};
     double avg_score_variance{0.0};
     double context_switch_rate{0.0};  ///< Fraction of ticks with process change
+    double hybrid_embi_mode_ratio{0.0}; ///< Fraction of decisions made in EMBI mode
+    double hybrid_mw_mode_ratio{0.0};   ///< Fraction of decisions made in MaxWeight fallback mode
+    
+    // ── Hybrid Diagnostics ────────────────────────────────────────────────────
+    double avg_tau{0.0};
+    double avg_gap{0.0};
+    double avg_eta_c{0.0};
+
+    struct HybridSample {
+        uint64_t tick;
+        double tau;
+        double gap;
+        int mode;
+    };
+    std::vector<HybridSample> hybrid_samples;
 };
 
 /**
@@ -141,6 +159,13 @@ public:
     void recordDecision(const Decision& decision, uint64_t tick);
 
     /**
+     * @brief Records a Lyapunov V(t) sample.
+     * @param v  Lyapunov potential V(t) for this tick.
+     * @complexity O(1)
+     */
+    void recordLyapunovV(double v);
+
+    /**
      * @brief Records a Lyapunov drift sample.
      * @param drift  ΔV for this tick.
      * @complexity O(1)
@@ -174,10 +199,8 @@ private:
     std::size_t num_processes_;
     uint64_t    max_ticks_;
 
-    // ── Waiting time histogram ────────────────────────────────────────────────
-    std::vector<uint64_t> wait_hist_;      ///< bins over [0, max_ticks_]
-    double                wait_bin_width_{1.0};
-    uint64_t              total_wait_count_{0};
+    // ── Exact Waiting Times ───────────────────────────────────────────────────
+    std::vector<double>   wait_times_;
     double                total_wait_sum_{0.0};
     double                max_wait_seen_{0.0};
 
@@ -191,8 +214,13 @@ private:
     std::vector<double>   queue_max_per_proc_;
     std::vector<double>   queue_min_per_proc_;
 
-    // ── Drift samples (for oscillation frequency) ────────────────────────────
+    // ─── Drift and V(t) samples (for plotting and stability analysis) ─────────
     std::vector<double> drift_samples_;  ///< sampled every 100 ticks (memory-bounded)
+    std::vector<double> v_samples_;      ///< sampled Lyapunov V(t)
+    double              sum_lyapunov_v_{0.0};
+    double              max_lyapunov_v_{0.0};
+    uint64_t            v_samples_count_{0};
+    
     static constexpr std::size_t kMaxDriftSamples = 100'000;
     uint64_t sample_stride_{1};
     uint64_t sample_counter_{0};
@@ -202,7 +230,14 @@ private:
     double   score_var_sum_{0.0};
     uint64_t decision_count_{0};
     uint64_t context_switches_{0};
+    uint64_t mode_embi_count_{0};
+    uint64_t mode_mw_count_{0};
+    double   tau_sum_{0.0};
+    double   gap_sum_{0.0};
+    double   eta_c_sum_{0.0};
     std::size_t last_chosen_pid_{std::size_t(-1)};
+    
+    std::vector<OfflineReport::HybridSample> hybrid_samples_;
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     [[nodiscard]] double histogramPercentile(const std::vector<uint64_t>& hist,

@@ -78,6 +78,7 @@ public:
             double      true_mu,
             double      alpha_,
             double      beta_,
+            double      lambda_noise_stddev_ = 0.0,
             std::size_t queue_preallocate = 256);
 
     Process(const Process&)             = default;
@@ -92,6 +93,7 @@ public:
     // ─── Queue state ──────────────────────────────────────────────────────────
 
     int64_t  queue_length{0};    ///< Current number of jobs waiting (or in service).
+    int64_t  sync_debt{0};       ///< D_i(t): Mathematical congestion state for lock contention.
     uint64_t arrival_count{0};   ///< Total jobs arrived since creation / last reset().
     uint64_t completed_jobs{0};  ///< Total jobs completed since creation / last reset().
 
@@ -133,6 +135,7 @@ public:
     double mu_hat{1.0};      ///< Estimated service rate (EWMA of 1/service_time).
     double alpha{0.1};       ///< EWMA smoothing coefficient for lambda_hat.
     double beta{0.1};        ///< EWMA smoothing coefficient for mu_hat.
+    double lambda_noise_stddev{0.0}; ///< Noise injected into arrival estimate.
 
     // ─── Starvation tracking ──────────────────────────────────────────────────
 

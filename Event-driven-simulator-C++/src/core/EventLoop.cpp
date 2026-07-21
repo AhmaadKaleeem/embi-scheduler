@@ -1,13 +1,12 @@
 /**
  * @file EventLoop.cpp
- * @brief Implementation of the discrete-event simulation engine.
- *
  * @author  EMBI Simulator Project
  * @version 1.0.0
  */
 
 #include "core/EventLoop.hpp"
-
+#include "events/SyntheticEventSource.hpp"
+#include "workloads/LockContentionWorkload.hpp"
 #include "utils/Timer.hpp"
 
 #include <algorithm>
@@ -18,19 +17,18 @@ namespace embi {
 
 
 EventLoop::EventLoop(const Config&       config,
-                     BaseWorkload*       workload,
+                     IEventSource*       event_source,
                      BaseScheduler*      scheduler,
                      OnlineMetrics*      online_metrics,
                      OfflineMetrics*     offline_metrics,
                      StatisticsDatabase& stats_db)
     : config_(config)
-    , workload_(workload)
+    , event_source_(event_source)
     , scheduler_(scheduler)
     , online_metrics_(online_metrics)
     , offline_metrics_(offline_metrics)
     , stats_db_(stats_db)
     , event_queue_(static_cast<std::size_t>(config.num_processes) * 4 + 16)
-    , next_arrival_tick_(config.num_processes, 0.0)
 {
     // Pre-allocate processes
     processes_.reserve(config.num_processes);
@@ -43,23 +41,14 @@ EventLoop::EventLoop(const Config&       config,
                                 rate,
                                 config.service_rate,
                                 config.alpha,
-                                config.beta);
+                                config.beta,
+                                config.lambda_noise_stddev);
     }
 
-    // Schedule first arrival for each process by sampling the workload
-    for (std::size_t i = 0; i < config.num_processes; ++i) {
-        next_arrival_tick_[i] = workload_->next();
-    }
-
-    // Lock-contention mode: initialise LockManager and per-process request timers
     if (config.workload_name == "lock_contention") {
-        lock_workload_ = dynamic_cast<LockContentionWorkload*>(workload_);
-        if (lock_workload_) {
-            lock_mgr_ = std::make_unique<LockManager>(config.num_locks);
-            next_lock_req_tick_.resize(config.num_processes);
-            for (std::size_t i = 0; i < config.num_processes; ++i) {
-                next_lock_req_tick_[i] = lock_workload_->next();
-            }
+        lock_mgr_ = std::make_unique<LockManager>(config.num_locks);
+        if (auto* ses = dynamic_cast<SyntheticEventSource*>(event_source_)) {
+            lock_workload_ = ses->getLockWorkload();
         }
     }
 }
@@ -73,33 +62,8 @@ void EventLoop::run() {
     for (uint64_t tick = 0; tick < total_ticks; ++tick) {
         const double tick_d = static_cast<double>(tick);
 
-        // ── Phase 1: Generate arrival events ─────────────────────────────────
-        // For each process, push an ArrivalEvent for every pending arrival.
-        // This handles the case where multiple arrivals accumulate between ticks
-        // (e.g., in heavy-tail workloads with very small inter-arrival times).
-        for (std::size_t i = 0; i < processes_.size(); ++i) {
-            double rate = config_.arrival_rate;
-            if (!config_.arrival_rate_asymmetric.empty()) {
-                rate = config_.arrival_rate_asymmetric[i % config_.arrival_rate_asymmetric.size()];
-            }
-            double scale = (rate > 0.0) ? (config_.arrival_rate / rate) : 1.0;
-
-            while (next_arrival_tick_[i] <= tick_d) {
-                event_queue_.push(makeArrivalEvent(tick_d, i));
-                next_arrival_tick_[i] += workload_->next() * scale;
-            }
-        }
-
-        // ── Phase 1b: Generate LockAcquireEvents (lock_contention workload only) ──
-        if (lock_mgr_) {
-            for (std::size_t i = 0; i < processes_.size(); ++i) {
-                while (next_lock_req_tick_[i] <= tick_d) {
-                    std::size_t lock_id = lock_workload_->randomLockId();
-                    event_queue_.push(makeLockAcquireEvent(tick_d, i, lock_id));
-                    next_lock_req_tick_[i] += lock_workload_->next();
-                }
-            }
-        }
+        // ── Phase 1: Generate domain events (Arrivals, Lock requests, etc) ───
+        event_source_->emitEvents(tick_d, event_queue_);
 
         // ── Phase 2: Push Schedule and Metrics events ─────────────────────────
         event_queue_.push(makeScheduleEvent(tick_d));
@@ -216,6 +180,7 @@ void EventLoop::handleScheduleEvent(const Event& /*e*/, uint64_t tick) {
             if (proc.lock_state.elapsed_cpu >= proc.lock_state.required_cpu) {
                 int lock_id = proc.lock_state.held_lock_id;
                 proc.lock_state = Process::LockState{};  // clear holding state
+                proc.sync_debt = 0;                      // clear synchronization debt
 
                 // Release the lock and promote next waiter.
                 int next_owner = lock_mgr_->release(static_cast<std::size_t>(lock_id));
@@ -251,28 +216,26 @@ void EventLoop::handleServiceEvent(const Event& e, uint64_t tick,
 
 // ─── Lock event handlers ──────────────────────────────────────────────────────
 
-void EventLoop::handleLockAcquireEvent(const Event& e, uint64_t tick) {
+void EventLoop::handleLockAcquireEvent(const Event& e, uint64_t /*tick*/) {
     std::size_t pid     = e.pid;
     std::size_t lock_id = static_cast<std::size_t>(e.payload);
     if (pid >= processes_.size() || lock_id >= lock_mgr_->numLocks()) return;
-
-    const double tick_d = static_cast<double>(tick);
 
     bool acquired = lock_mgr_->acquire(lock_id, pid);
 
     if (acquired) {
         // Grant: set up the LockState with a fresh hold-duration sample.
-        double hold = lock_workload_->holdDuration();
+        double hold = lock_workload_ ? lock_workload_->holdDuration() : 0.0;
         processes_[pid].lock_state = Process::LockState{true,
                                                          static_cast<int>(lock_id),
                                                          hold,
                                                          0.0};
     } else {
-        // Blocked: the current owner's Q_i increments — this IS the fluid-model
-        // arrival update. We call arrival() on the owner.
+        // Blocked: the current owner's Synchronization Debt (D_i) increments.
+        // This acts as a mathematical congestion state without polluting literal queues.
         int owner = lock_mgr_->owner(lock_id);
         if (owner >= 0 && static_cast<std::size_t>(owner) < processes_.size()) {
-            processes_[static_cast<std::size_t>(owner)].arrival(tick_d);
+            processes_[static_cast<std::size_t>(owner)].sync_debt++;
         }
     }
 }
@@ -286,7 +249,7 @@ void EventLoop::handleLockReleaseEvent(const Event& e, uint64_t tick) {
 void EventLoop::promoteLockWaiter(std::size_t lock_id, int new_owner_pid,
                                    double tick_d) {
     // The waiter is now the owner: give it a fresh critical-section hold duration.
-    double hold = lock_workload_->holdDuration();
+    double hold = lock_workload_ ? lock_workload_->holdDuration() : 0.0;
     std::size_t new_pid = static_cast<std::size_t>(new_owner_pid);
     if (new_pid < processes_.size()) {
         processes_[new_pid].lock_state = Process::LockState{true,
@@ -309,6 +272,7 @@ void EventLoop::handleMetricsEvent(const Event& /*e*/, uint64_t tick,
     }
     offline_metrics_->recordDecision(last_decision_, tick);
     offline_metrics_->recordDrift(online_metrics_->lyapunovDrift());
+    offline_metrics_->recordLyapunovV(online_metrics_->lyapunovV());
 
     // Update starvation counters for unchosen processes
     for (std::size_t i = 0; i < processes_.size(); ++i) {
@@ -336,13 +300,24 @@ void EventLoop::emitLogRecords(uint64_t tick, double waiting_time) {
         rec.service_rate    = p.true_service_rate;
         rec.lambda_hat      = p.lambda_hat;
         rec.mu_hat          = p.mu_hat;
-        rec.scheduler_score = 0.0;  // computed per-scheduler in Decision; store separately
+        
+        if (i < last_decision_.final_scores.size()) {
+            rec.scheduler_score = last_decision_.final_scores[i];
+        }
+        if (i < last_decision_.raw_scores.size()) {
+            rec.raw_score = last_decision_.raw_scores[i];
+        }
+
         rec.chosen          = (last_decision_.valid && last_decision_.chosen_pid == i);
         rec.waiting_time    = rec.chosen ? waiting_time : 0.0;
         rec.completion_time = p.last_service_time;
         rec.throughput      = snap.throughput;
         rec.lyapunov_v      = snap.lyapunov_v;
         rec.lyapunov_drift  = snap.lyapunov_drift;
+        
+        rec.gap             = last_decision_.g_hat_X;
+        rec.tau             = last_decision_.tau_X;
+        rec.branch          = last_decision_.mode_flag;
 
         stats_db_.record(rec);
     }

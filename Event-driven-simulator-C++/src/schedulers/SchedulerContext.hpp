@@ -38,6 +38,7 @@ struct OnlineSnapshot {
     double   utilization{0.0};    ///< Fraction of ticks CPU was busy
     uint64_t completed_jobs{0};   ///< Total completed jobs so far
     uint64_t tick{0};             ///< Current simulation tick
+    double   hybrid_embi_fraction{0.0}; ///< Fraction of Hybrid ticks that chose EMBI
 };
 
 /**

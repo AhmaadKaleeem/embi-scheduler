@@ -31,6 +31,12 @@ void OnlineMetrics::update(const std::vector<Process>& processes,
                             uint64_t                    /*tick*/) {
     tick_count_++;
 
+    if (decision.mode_flag == 1) {
+        hybrid_mw_ticks_++;
+    } else if (decision.mode_flag == 2) {
+        hybrid_embi_ticks_++;
+    }
+
     // ── Queue lengths snapshot ────────────────────────────────────────────────
     uint64_t arrived_this_tick    = 0;
     uint64_t completed_this_tick  = 0;
@@ -134,8 +140,15 @@ OnlineSnapshot OnlineMetrics::snapshot() const noexcept {
         rollingThroughput(),
         utilization(),
         total_completed_,
-        tick_count_
+        tick_count_,
+        hybridEmbiFraction()
     };
+}
+
+double OnlineMetrics::hybridEmbiFraction() const noexcept {
+    uint64_t total_hybrid = hybrid_embi_ticks_ + hybrid_mw_ticks_;
+    if (total_hybrid == 0) return 0.0;
+    return static_cast<double>(hybrid_embi_ticks_) / static_cast<double>(total_hybrid);
 }
 
 const std::vector<int64_t>& OnlineMetrics::queueLengths() const noexcept {
@@ -155,6 +168,8 @@ void OnlineMetrics::reset() {
     busy_ticks_        = 0;
     tick_count_        = 0;
     total_decision_ns_ = 0.0;
+    hybrid_embi_ticks_ = 0;
+    hybrid_mw_ticks_   = 0;
 
     std::fill(completed_in_tick_.begin(), completed_in_tick_.end(), 0ULL);
     std::fill(queue_lengths_.begin(), queue_lengths_.end(), 0);

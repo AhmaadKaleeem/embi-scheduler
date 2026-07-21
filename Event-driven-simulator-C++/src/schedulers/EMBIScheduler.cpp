@@ -30,15 +30,19 @@ Decision EMBIScheduler::choose(const SchedulerContext& ctx) {
 
     // ── Compute per-process EMBI scores ──────────────────────────────────────
     std::vector<double> scores(N);
+    std::vector<double> raw_scores(N);
     for (std::size_t i = 0; i < N; ++i) {
         const Process& p = procs[i];
-        double raw = p.mu_hat * (2.0 * static_cast<double>(p.queue_length)
+        double raw = p.mu_hat * (2.0 * static_cast<double>(p.queue_length + p.sync_debt)
                                  + 2.0 * p.lambda_hat
                                  - M_);
+        raw_scores[i] = raw;
         scores[i] = clip_ ? std::max(0.0, raw) : raw;
     }
 
     Decision d;
+    d.raw_scores = raw_scores;
+    d.final_scores = scores;
     argmaxWithQueues(scores, procs, d);
 
     if (!d.valid) return Decision::idle();

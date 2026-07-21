@@ -134,6 +134,11 @@ public:
     [[nodiscard]] OnlineSnapshot snapshot() const noexcept;
 
     /**
+     * @brief Returns the fraction of ticks where the Hybrid scheduler chose EMBI mode.
+     */
+    [[nodiscard]] double hybridEmbiFraction() const noexcept;
+
+    /**
      * @brief Returns the per-process queue length at the last update() call.
      * @complexity O(1)
      */
@@ -166,6 +171,9 @@ private:
     uint64_t total_arrived_{0};
     uint64_t busy_ticks_{0};
     uint64_t tick_count_{0};
+
+    uint64_t hybrid_embi_ticks_{0};
+    uint64_t hybrid_mw_ticks_{0};
 
     // ── Scheduler overhead ────────────────────────────────────────────────────
     double total_decision_ns_{0.0};
