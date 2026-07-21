@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
+#include <chrono>
+#include <iostream>
 
 namespace embi {
 
@@ -95,7 +97,31 @@ void EventLoop::run() {
                     handleScheduleEvent(e, tick);
                     // If the scheduler chose a process, push a ServiceEvent
                     if (last_decision_.valid) {
-                        event_queue_.push(makeServiceEvent(tick_d, last_decision_.chosen_pid));
+                        Event srv = makeServiceEvent(tick_d, last_decision_.chosen_pid);
+                        // Encode whether this is a context switch into the payload
+                        bool is_cx = (prev_decision_ != static_cast<std::size_t>(-1)) &&
+                                     (last_decision_.chosen_pid != prev_decision_);
+                        srv.payload = is_cx ? 1.0 : 0.0;
+                        event_queue_.push(srv);
+                    }
+                    if (config_.human_trace && tick < 200) {
+                        if (tick == 0) {
+                            std::cout << "Tick | PID | Q | Lambda_hat | Mu_hat | QueueTerm | PredTerm | PenaltyTerm | RawScore\n";
+                        }
+                        if (last_decision_.valid) {
+                            std::size_t c_pid = last_decision_.chosen_pid;
+                            const auto& p = processes_[c_pid];
+                            std::cout << tick << " | " << c_pid << " | " 
+                                      << p.queue_length << " | " 
+                                      << p.lambda_hat << " | " 
+                                      << p.mu_hat << " | "
+                                      << last_decision_.queue_term << " | "
+                                      << last_decision_.prediction_term << " | "
+                                      << last_decision_.penalty_term << " | "
+                                      << last_decision_.raw_score << "\n";
+                        } else {
+                            std::cout << tick << " | IDLE\n";
+                        }
                     }
                     break;
 
@@ -139,8 +165,15 @@ void EventLoop::handleScheduleEvent(const Event& /*e*/, uint64_t tick) {
         config_
     };
 
-    // Call scheduler
+    // Call scheduler and measure overhead
+    auto start_time = std::chrono::high_resolution_clock::now();
     last_decision_ = scheduler_->choose(ctx);
+    auto end_time = std::chrono::high_resolution_clock::now();
+    double elapsed_ns = std::chrono::duration<double, std::nano>(end_time - start_time).count();
+    
+    if (tick >= config_.warmup_ticks) {
+        offline_metrics_->recordSchedulerRuntime(elapsed_ns);
+    }
 
     // Update previous decision
     if (last_decision_.valid) {
@@ -202,9 +235,16 @@ void EventLoop::handleServiceEvent(const Event& e, uint64_t tick,
     // inside handleScheduleEvent. The regular ServiceEvent still handles
     // ordinary job completions for non-lock processes.
     if (!lock_mgr_ && processes_[pid].queue_length > 0) {
-        double wt = processes_[pid].service(static_cast<double>(tick));
+        // Apply context switch cost if requested (payload == 1.0 means true)
+        double cx_cost = (e.payload > 0.5) ? static_cast<double>(config_.context_switch_cost) : 0.0;
+        
+        // Wait time includes context switch cost
+        double wt = processes_[pid].service(static_cast<double>(tick) + cx_cost);
         waiting_time_out = wt;
-        offline_metrics_->recordWaitingTime(wt);
+        
+        if (tick >= config_.warmup_ticks) {
+            offline_metrics_->recordWaitingTime(wt);
+        }
     } else if (!lock_mgr_) {
         // No-op: empty queue.
     } else {
@@ -265,14 +305,16 @@ void EventLoop::handleMetricsEvent(const Event& /*e*/, uint64_t tick,
     // Update online metrics
     online_metrics_->update(processes_, last_decision_, tick);
 
-    // Periodically record queue snapshots and decisions for offline analysis
-    // Sampling stride: every 10 ticks to keep memory bounded
-    if (tick % 10 == 0) {
-        offline_metrics_->recordQueueSnapshot(processes_, tick);
+    if (tick >= config_.warmup_ticks) {
+        // Periodically record queue snapshots and decisions for offline analysis
+        // Sampling stride: every 10 ticks to keep memory bounded
+        if (tick % 10 == 0) {
+            offline_metrics_->recordQueueSnapshot(processes_, tick);
+        }
+        offline_metrics_->recordDecision(last_decision_, tick);
+        offline_metrics_->recordDrift(online_metrics_->lyapunovDrift());
+        offline_metrics_->recordLyapunovV(online_metrics_->lyapunovV());
     }
-    offline_metrics_->recordDecision(last_decision_, tick);
-    offline_metrics_->recordDrift(online_metrics_->lyapunovDrift());
-    offline_metrics_->recordLyapunovV(online_metrics_->lyapunovV());
 
     // Update starvation counters for unchosen processes
     for (std::size_t i = 0; i < processes_.size(); ++i) {

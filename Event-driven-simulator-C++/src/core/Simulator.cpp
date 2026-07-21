@@ -208,6 +208,7 @@ Results Simulator::run() {
     results.seed           = config_.seed;
     results.arrival_rate   = config_.arrival_rate;
     results.arrival_rate_asymmetric = config_.arrival_rate_asymmetric;
+    results.config         = config_;
     results.online         = online;
     results.offline        = offline;
 

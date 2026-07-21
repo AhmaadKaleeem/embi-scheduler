@@ -150,7 +150,16 @@ std::vector<Config> ExperimentConfig::expand() const {
                                 for (double nz : noise_sweep) {
                                     Config cfg;
                                     cfg.ticks           = ticks;
+                                    if (warmup_ticks == 0) {
+                                        cfg.warmup_ticks = std::max<uint64_t>(100000, ticks / 10);
+                                    } else {
+                                        cfg.warmup_ticks = warmup_ticks;
+                                    }
                                     cfg.num_processes   = num_processes;
+                                    cfg.context_switch_cost = context_switch_cost;
+                                    cfg.git_commit_hash = git_commit_hash;
+                                    cfg.binary_sha256   = binary_sha256;
+                                    cfg.config_hash     = config_hash;
                                     cfg.seed            = seed_val;
                                     cfg.scheduler_name  = sched;
                                     cfg.workload_name   = wload;

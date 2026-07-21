@@ -80,6 +80,13 @@ struct Decision {
     double eta_c{0.0};            ///< Diagnostic clipped ratio eta_c
     int    fallback_reason{0};    ///< 0: none, 1: gap <= tau (fallback), 2: gap > tau (embi)
 
+    // ─── Score Decomposition (New) ────────────────────────────────────────────
+    double queue_term{0.0};       ///< The queue length component (2 * mu * Q)
+    double prediction_term{0.0};  ///< The prediction component (2 * lambda * mu)
+    double penalty_term{0.0};     ///< The penalty component (M * mu^2)
+    double raw_score{0.0};        ///< Unclipped raw score sum
+    double clipped_score{0.0};    ///< Final score after clipping (max(0, raw))
+
     // ─── Convenience ─────────────────────────────────────────────────────────
 
     /// Returns a sentinel Decision representing a CPU-idle tick.

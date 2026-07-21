@@ -88,6 +88,12 @@ Decision HybridEMBIScheduler::choose(const SchedulerContext& ctx) {
         clipped_d.fallback_reason = 2; // gap > tau
         clipped_d.raw_scores = raw_embi_scores;
         clipped_d.final_scores = clipped_embi_scores;
+        const Process& chosen_p = procs[clipped_d.chosen_pid];
+        clipped_d.queue_term = 2.0 * chosen_p.mu_hat * static_cast<double>(chosen_p.queue_length + chosen_p.sync_debt);
+        clipped_d.prediction_term = 2.0 * chosen_p.lambda_hat * chosen_p.mu_hat;
+        clipped_d.penalty_term = chosen_p.mu_hat * M_;
+        clipped_d.raw_score = raw_embi_scores[clipped_d.chosen_pid];
+        clipped_d.clipped_score = clipped_embi_scores[clipped_d.chosen_pid];
         
         return clipped_d;
     }
@@ -117,6 +123,12 @@ Decision HybridEMBIScheduler::choose(const SchedulerContext& ctx) {
     fallback_d.fallback_reason = 1; // gap <= tau
     fallback_d.raw_scores = raw_embi_scores;
     fallback_d.final_scores = fallback_scores;
+    const Process& chosen_p = procs[fallback_d.chosen_pid];
+    fallback_d.queue_term = 2.0 * chosen_p.mu_hat * static_cast<double>(chosen_p.queue_length + chosen_p.sync_debt);
+    fallback_d.prediction_term = 2.0 * chosen_p.lambda_hat * chosen_p.mu_hat;
+    fallback_d.penalty_term = chosen_p.mu_hat * M_;
+    fallback_d.raw_score = raw_embi_scores[fallback_d.chosen_pid];
+    fallback_d.clipped_score = clipped_embi_scores[fallback_d.chosen_pid];
 
     return fallback_d;
 }

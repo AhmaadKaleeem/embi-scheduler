@@ -166,6 +166,7 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["config"]["scheduler"]    = config_.scheduler_name;
     j["config"]["workload"]     = config_.workload_name;
     j["config"]["ticks"]        = config_.ticks;
+    j["config"]["warmup_ticks"] = config_.warmup_ticks;
     j["config"]["num_processes"]= config_.num_processes;
     j["config"]["seed"]         = config_.seed;
     j["config"]["arrival_rate"] = config_.arrival_rate;
@@ -173,6 +174,46 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["config"]["alpha"]        = config_.alpha;
     j["config"]["beta"]         = config_.beta;
     j["config"]["M"]            = config_.M;
+    j["config"]["epsilon_total"] = config_.epsilon_total;
+    j["config"]["tau_constant"] = config_.tau_constant_bound;
+    j["config"]["clip_scores"]  = config_.embi_clipped;
+    j["config"]["context_switch_cost"] = config_.context_switch_cost;
+    j["config"]["rng_stream"]   = "independent_per_experiment";
+    j["config"]["rng_engine"]   = "std::mt19937_64";
+    j["config"]["queue_capacity"] = "infinite";
+    j["config"]["floating_point"] = "double";
+    j["config"]["git_commit"]   = config_.git_commit_hash;
+    j["config"]["binary_hash"]  = config_.binary_sha256;
+    j["config"]["config_hash"]  = config_.config_hash;
+
+    // Platform Info
+#if defined(_WIN32) || defined(_WIN64)
+    j["platform"]["os"] = "Windows";
+#elif defined(__linux__)
+    j["platform"]["os"] = "Linux";
+#elif defined(__APPLE__)
+    j["platform"]["os"] = "macOS";
+#else
+    j["platform"]["os"] = "Unknown";
+#endif
+#if defined(__clang__)
+    j["platform"]["compiler"] = "Clang";
+    j["platform"]["compiler_version"] = __clang_version__;
+#elif defined(__GNUC__)
+    j["platform"]["compiler"] = "GCC";
+    j["platform"]["compiler_version"] = std::to_string(__GNUC__) + "." + std::to_string(__GNUC_MINOR__);
+#elif defined(_MSC_VER)
+    j["platform"]["compiler"] = "MSVC";
+    j["platform"]["compiler_version"] = std::to_string(_MSC_FULL_VER);
+#else
+    j["platform"]["compiler"] = "Unknown";
+    j["platform"]["compiler_version"] = "Unknown";
+#endif
+#ifdef NDEBUG
+    j["platform"]["build_type"] = "Release (optimized)";
+#else
+    j["platform"]["build_type"] = "Debug";
+#endif
 
     // Online
     j["online"]["lyapunov_v"]     = online.lyapunov_v;
@@ -206,12 +247,10 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["queue"]["max"]      = r.queue_stats.max;
     j["queue"]["min"]      = r.queue_stats.min;
     j["queue"]["median"]   = r.queue_stats.median;
+    j["queue"]["p95"]      = r.queue_stats.p95;
+    j["queue"]["p99"]      = r.queue_stats.p99;
     j["queue"]["variance"] = r.queue_stats.variance;
     j["queue"]["std_dev"]  = r.queue_stats.std_dev;
-
-    // Stability
-    j["stability"]["time_to_steady_state"]  = r.time_to_steady_state;
-    j["stability"]["oscillation_frequency"] = r.oscillation_frequency;
 
     // Scheduler
     j["scheduler_diag"]["avg_entropy"]        = r.avg_decision_entropy;
@@ -220,9 +259,24 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["scheduler_diag"]["total_throughput"]   = r.total_throughput;
     j["scheduler_diag"]["hybrid_embi_ratio"]  = r.hybrid_embi_mode_ratio;
     j["scheduler_diag"]["hybrid_mw_ratio"]    = r.hybrid_mw_mode_ratio;
+    j["scheduler_diag"]["hybrid_avg_streak"]  = r.hybrid_avg_streak;
+    j["scheduler_diag"]["hybrid_max_streak"]  = r.hybrid_max_streak;
+    j["scheduler_diag"]["hybrid_transitions"] = r.hybrid_transition_count;
     j["scheduler_diag"]["avg_tau"]            = r.avg_tau;
     j["scheduler_diag"]["avg_gap"]            = r.avg_gap;
     j["scheduler_diag"]["avg_eta_c"]          = r.avg_eta_c;
+    j["scheduler_diag"]["avg_runtime_ns"]     = r.avg_scheduler_runtime_ns;
+    j["scheduler_diag"]["max_runtime_ns"]     = r.max_scheduler_runtime_ns;
+
+    double sum_comp = r.avg_queue_term + r.avg_prediction_term + r.avg_penalty_term + 1e-9;
+    j["scheduler_diag"]["components"] = {
+        {"avg_queue", r.avg_queue_term},
+        {"avg_prediction", r.avg_prediction_term},
+        {"avg_penalty", r.avg_penalty_term},
+        {"pct_queue", (r.avg_queue_term / sum_comp) * 100.0},
+        {"pct_prediction", (r.avg_prediction_term / sum_comp) * 100.0},
+        {"pct_penalty", (r.avg_penalty_term / sum_comp) * 100.0}
+    };
 
     // Aggregate statistics (from multi-seed runs if available)
     for (const auto& metric : stats_.metricNames()) {

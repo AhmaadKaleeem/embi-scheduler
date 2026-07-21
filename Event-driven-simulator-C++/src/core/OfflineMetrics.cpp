@@ -90,6 +90,31 @@ void OfflineMetrics::recordDecision(const Decision& decision, uint64_t tick) {
     gap_sum_   += decision.g_hat_X;
     eta_c_sum_ += decision.eta_c;
     
+    // Streak tracking
+    if (decision.mode_flag != 0) {
+        if (decision.mode_flag == last_mode_) {
+            current_streak_++;
+        } else {
+            if (current_streak_ > 0) {
+                sum_streaks_ += current_streak_;
+                streak_count_++;
+                if (current_streak_ > max_streak_) {
+                    max_streak_ = current_streak_;
+                }
+            }
+            if (last_mode_ != -1) {
+                transition_count_++;
+            }
+            last_mode_ = decision.mode_flag;
+            current_streak_ = 1;
+        }
+    }
+    
+    // Score Components
+    sum_queue_term_ += decision.queue_term;
+    sum_prediction_term_ += decision.prediction_term;
+    sum_penalty_term_ += decision.penalty_term;
+    
     // Sample hybrid decisions (e.g., max 10k samples)
     if (decision_count_ % 100 == 0 && hybrid_samples_.size() < 10000) {
         hybrid_samples_.push_back({tick, decision.tau_X, decision.g_hat_X, decision.mode_flag});
@@ -115,6 +140,14 @@ void OfflineMetrics::recordDrift(double drift) {
         drift_samples_.size() < kMaxDriftSamples) {
         drift_samples_.push_back(drift);
     }
+}
+
+void OfflineMetrics::recordSchedulerRuntime(double elapsed_ns) {
+    sum_scheduler_runtime_ns_ += elapsed_ns;
+    if (elapsed_ns > max_scheduler_runtime_ns_) {
+        max_scheduler_runtime_ns_ = elapsed_ns;
+    }
+    runtime_samples_++;
 }
 
 // ─── Offline computation ─────────────────────────────────────────────────────
@@ -196,15 +229,18 @@ OfflineReport OfflineMetrics::compute(const std::vector<Process>& processes,
         double ex2      = sum_sq_total / (n_samples * static_cast<double>(num_processes_));
         double variance = ex2 - grand_mean * grand_mean;
 
-        // Median from histogram (bin 1 = queue length 1, etc.)
-        double median = histogramPercentile(queue_hist_, 1.0,
-                                            queue_samples_ * num_processes_, 0.50);
+        // Median and Percentiles from histogram
+        double median = histogramPercentile(queue_hist_, 1.0, queue_samples_ * num_processes_, 0.50);
+        double p95 = histogramPercentile(queue_hist_, 1.0, queue_samples_ * num_processes_, 0.95);
+        double p99 = histogramPercentile(queue_hist_, 1.0, queue_samples_ * num_processes_, 0.99);
 
         r.queue_stats = QueueStats{
             gmin,
             gmax,
             grand_mean,
             median,
+            p95,
+            p99,
             std::max(0.0, variance),
             std::sqrt(std::max(0.0, variance))
         };
@@ -272,6 +308,19 @@ OfflineReport OfflineMetrics::compute(const std::vector<Process>& processes,
         r.avg_gap   = (decision_count_ > 0) ? gap_sum_   / decision_count_ : 0.0;
         r.avg_eta_c = (decision_count_ > 0) ? eta_c_sum_ / decision_count_ : 0.0;
         r.hybrid_samples = hybrid_samples_;
+        
+        r.avg_queue_term = (decision_count_ > 0) ? sum_queue_term_ / decision_count_ : 0.0;
+        r.avg_prediction_term = (decision_count_ > 0) ? sum_prediction_term_ / decision_count_ : 0.0;
+        r.avg_penalty_term = (decision_count_ > 0) ? sum_penalty_term_ / decision_count_ : 0.0;
+        
+        r.avg_scheduler_runtime_ns = (runtime_samples_ > 0) ? sum_scheduler_runtime_ns_ / runtime_samples_ : 0.0;
+        r.max_scheduler_runtime_ns = max_scheduler_runtime_ns_;
+
+        uint64_t scount = streak_count_ + (current_streak_ > 0 ? 1 : 0);
+        uint64_t ssum = sum_streaks_ + current_streak_;
+        r.hybrid_avg_streak = scount > 0 ? static_cast<double>(ssum) / scount : 0.0;
+        r.hybrid_max_streak = std::max(max_streak_, current_streak_);
+        r.hybrid_transition_count = transition_count_;
 
         // ── Lyapunov V ────────────────────────────────────────────────────────────
         r.avg_lyapunov_v = (total_ticks > 0)
@@ -312,6 +361,21 @@ void OfflineMetrics::reset() {
     eta_c_sum_         = 0.0;
     hybrid_samples_.clear();
     last_chosen_pid_   = std::size_t(-1);
+    
+    sum_scheduler_runtime_ns_ = 0.0;
+    max_scheduler_runtime_ns_ = 0.0;
+    runtime_samples_ = 0;
+    
+    sum_queue_term_ = 0.0;
+    sum_prediction_term_ = 0.0;
+    sum_penalty_term_ = 0.0;
+    
+    last_mode_ = -1;
+    current_streak_ = 0;
+    max_streak_ = 0;
+    sum_streaks_ = 0;
+    streak_count_ = 0;
+    transition_count_ = 0;
     
     sample_counter_    = 0;
     drift_samples_.clear();

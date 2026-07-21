@@ -30,6 +30,7 @@ struct Results {
     uint64_t       seed{0};         ///< PRNG seed used.
     double         arrival_rate{0.0}; ///< Configured arrival rate.
     std::vector<double> arrival_rate_asymmetric; ///< Optional per-process rates.
+    Config         config;          ///< Full configuration used for the run.
 
     OnlineSnapshot online;          ///< Final online metrics snapshot.
     OfflineReport  offline;         ///< Post-simulation offline report.

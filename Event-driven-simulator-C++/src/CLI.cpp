@@ -129,6 +129,31 @@ CLIResult CLI::parse(int argc, char* argv[]) {
             cfg.seed = toUInt64(arg.c_str(), argv[i]);
             continue;
         }
+        if (arg == "--warmup-ticks") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.warmup_ticks = toUInt64(arg.c_str(), argv[i]);
+            continue;
+        }
+        if (arg == "--context-switch-cost") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.context_switch_cost = toUInt64(arg.c_str(), argv[i]);
+            continue;
+        }
+        if (arg == "--git-commit") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.git_commit_hash = argv[i];
+            continue;
+        }
+        if (arg == "--binary-hash") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.binary_sha256 = argv[i];
+            continue;
+        }
+        if (arg == "--config-hash") {
+            expect_arg(arg.c_str(), ++i, argc);
+            cfg.config_hash = argv[i];
+            continue;
+        }
 
         // ── Rate parameters ───────────────────────────────────────────────────
         if (arg == "--arrival-rate-asymmetric") {
@@ -245,6 +270,10 @@ CLIResult CLI::parse(int argc, char* argv[]) {
             cfg.null_log = true;
             continue;
         }
+        if (arg == "--human-trace") {
+            cfg.human_trace = true;
+            continue;
+        }
 
         // ── Lock-contention workload ───────────────────────────────────────────
         if (arg == "--num-locks") {
@@ -268,6 +297,10 @@ CLIResult CLI::parse(int argc, char* argv[]) {
 
     // Validate if not in experiment mode
     if (!result.experiment_mode && !result.help_requested) {
+        if (cfg.warmup_ticks == 0) {
+            uint64_t ten_percent = cfg.ticks / 10;
+            cfg.warmup_ticks = std::max<uint64_t>(100000, ten_percent);
+        }
         cfg.validate();
     }
 

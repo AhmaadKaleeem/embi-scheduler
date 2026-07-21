@@ -110,6 +110,60 @@ void SummaryWriter::writeJSONSummary(const std::string&             path,
         entry["seed"]            = rs.seed;
         entry["arrival_rate"]    = rs.arrival_rate;
         entry["arrival_rate_asymmetric"] = rs.arrival_rate_asymmetric;
+        
+        // ── Config ────────────────────────────────────────────────────────────
+        entry["config"] = {
+            {"ticks", rs.config.ticks},
+            {"warmup_ticks", rs.config.warmup_ticks},
+            {"num_processes", rs.config.num_processes},
+            {"M", rs.config.M},
+            {"alpha", rs.config.alpha},
+            {"beta", rs.config.beta},
+            {"epsilon_total", rs.config.epsilon_total},
+            {"tau_constant", rs.config.tau_constant_bound},
+            {"clip_scores", rs.config.embi_clipped},
+            {"context_switch_cost", rs.config.context_switch_cost},
+            {"rng_stream", "independent_per_experiment"},
+            {"rng_engine", "std::mt19937_64"},
+            {"queue_capacity", "infinite"},
+            {"floating_point", "double"},
+            {"git_commit", rs.config.git_commit_hash},
+            {"binary_hash", rs.config.binary_sha256},
+            {"config_hash", rs.config.config_hash}
+        };
+
+        // ── Platform Info ─────────────────────────────────────────────────────
+        entry["platform"] = {
+#if defined(_WIN32) || defined(_WIN64)
+            {"os", "Windows"},
+#elif defined(__linux__)
+            {"os", "Linux"},
+#elif defined(__APPLE__)
+            {"os", "macOS"},
+#else
+            {"os", "Unknown"},
+#endif
+#if defined(__clang__)
+            {"compiler", "Clang"},
+            {"compiler_version", __clang_version__},
+#elif defined(__GNUC__)
+            {"compiler", "GCC"},
+            {"compiler_version", std::to_string(__GNUC__) + "." + std::to_string(__GNUC_MINOR__)},
+#elif defined(_MSC_VER)
+            {"compiler", "MSVC"},
+            {"compiler_version", std::to_string(_MSC_FULL_VER)},
+#else
+            {"compiler", "Unknown"},
+            {"compiler_version", "Unknown"},
+#endif
+#ifdef NDEBUG
+            {"build_type", "Release (optimized)"}
+#else
+            {"build_type", "Debug"}
+#endif
+        };
+
+        // ── Metrics ───────────────────────────────────────────────────────────
         entry["avg_waiting_time"]= rs.offline.avg_waiting_time;
         entry["p50"]             = rs.offline.p50_waiting_time;
         entry["p95"]             = rs.offline.p95_waiting_time;
@@ -121,11 +175,35 @@ void SummaryWriter::writeJSONSummary(const std::string&             path,
         entry["lyapunov_drift"]  = rs.online.lyapunov_drift;
         entry["max_starvation"]  = rs.offline.max_starvation_ticks;
         entry["queue_mean"]      = rs.offline.queue_stats.mean;
+        entry["queue_median"]    = rs.offline.queue_stats.median;
+        entry["queue_p95"]       = rs.offline.queue_stats.p95;
+        entry["queue_p99"]       = rs.offline.queue_stats.p99;
         entry["queue_max"]       = rs.offline.queue_stats.max;
         entry["oscillation"]     = rs.offline.oscillation_frequency;
         entry["steady_state"]    = rs.offline.time_to_steady_state;
         entry["context_switches"]= rs.offline.context_switch_rate;
         entry["hybrid_fraction"] = rs.online.hybrid_embi_fraction;
+        
+        // ── Branch & Hybrid Stats ─────────────────────────────────────────────
+        entry["hybrid_avg_streak"] = rs.offline.hybrid_avg_streak;
+        entry["hybrid_max_streak"] = rs.offline.hybrid_max_streak;
+        entry["hybrid_transitions"] = rs.offline.hybrid_transition_count;
+        
+        // ── Runtime Overhead ──────────────────────────────────────────────────
+        entry["avg_scheduler_runtime_ns"] = rs.offline.avg_scheduler_runtime_ns;
+        entry["max_scheduler_runtime_ns"] = rs.offline.max_scheduler_runtime_ns;
+        
+        // ── Score Components ──────────────────────────────────────────────────
+        double sum_components = rs.offline.avg_queue_term + rs.offline.avg_prediction_term + rs.offline.avg_penalty_term + 1e-9;
+        entry["components"] = {
+            {"avg_queue", rs.offline.avg_queue_term},
+            {"avg_prediction", rs.offline.avg_prediction_term},
+            {"avg_penalty", rs.offline.avg_penalty_term},
+            {"pct_queue", (rs.offline.avg_queue_term / sum_components) * 100.0},
+            {"pct_prediction", (rs.offline.avg_prediction_term / sum_components) * 100.0},
+            {"pct_penalty", (rs.offline.avg_penalty_term / sum_components) * 100.0}
+        };
+
         j.push_back(entry);
     }
 

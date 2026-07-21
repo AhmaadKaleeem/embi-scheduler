@@ -33,6 +33,7 @@ struct RunSummary {
     uint64_t    seed{0};
     double      arrival_rate{0.0};
     std::vector<double> arrival_rate_asymmetric;
+    Config      config;
     OnlineSnapshot online;
     OfflineReport  offline;
 };

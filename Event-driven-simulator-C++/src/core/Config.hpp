@@ -64,12 +64,19 @@ inline constexpr const char* kValidProfiles[] = {
 struct Config {
     // ── Simulation ────────────────────────────────────────────────────────────
     uint64_t    ticks{1'000'000};   ///< Number of simulation ticks.
+    uint64_t    warmup_ticks{0};    ///< Number of ticks to ignore for steady-state metrics.
     std::size_t num_processes{16};  ///< Number of concurrent processes.
     uint64_t    seed{42};           ///< PRNG seed for reproducibility.
+
+    // ── Reproducibility ───────────────────────────────────────────────────────
+    std::string git_commit_hash;    ///< Git commit hash.
+    std::string binary_sha256;      ///< SHA256 of the binary.
+    std::string config_hash;        ///< Hash of the experiment configuration.
 
     // ── Scheduling ────────────────────────────────────────────────────────────
     std::string scheduler_name{"embi"};  ///< Scheduler identifier.
     bool        embi_clipped{true};      ///< If true, EMBI clips score at 0.
+    uint64_t    context_switch_cost{0};  ///< Ticks added per context switch.
 
     // ── Workload ──────────────────────────────────────────────────────────────
     std::string                workload_name{"poisson"};  ///< Workload identifier.
@@ -107,6 +114,7 @@ struct Config {
     uint64_t    log_freq{1};           ///< Log every N ticks (1 = every tick).
     bool        binary_log{false};     ///< Use BinaryLogger instead of CSVLogger.
     bool        null_log{false};       ///< Use NullLogger (maximum-speed benchmarking).
+    bool        human_trace{false};    ///< Print first 200 ticks human-readable to stdout.
 
     // ── Experiment mode ───────────────────────────────────────────────────────
     bool                       experiment_mode{false};  ///< Run a parameter sweep.
@@ -176,7 +184,14 @@ struct ExperimentConfig {
 
     // ── Fixed parameters ──────────────────────────────────────────────────────
     uint64_t    ticks{1'000'000};
+    uint64_t    warmup_ticks{0};
     std::size_t num_processes{16};
+    uint64_t    context_switch_cost{0};
+    
+    std::string git_commit_hash;
+    std::string binary_sha256;
+    std::string config_hash;
+
     double      service_rate{1.0};
     double      alpha{0.1};
     double      beta{0.1};

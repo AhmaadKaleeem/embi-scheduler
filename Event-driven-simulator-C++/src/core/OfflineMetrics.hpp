@@ -43,6 +43,8 @@ struct QueueStats {
     double max{0.0};
     double mean{0.0};
     double median{0.0};
+    double p95{0.0};
+    double p99{0.0};
     double variance{0.0};
     double std_dev{0.0};
 };
@@ -91,10 +93,21 @@ struct OfflineReport {
     double hybrid_embi_mode_ratio{0.0}; ///< Fraction of decisions made in EMBI mode
     double hybrid_mw_mode_ratio{0.0};   ///< Fraction of decisions made in MaxWeight fallback mode
     
+    double avg_scheduler_runtime_ns{0.0};
+    double max_scheduler_runtime_ns{0.0};
+
+    // ── Score Components ──────────────────────────────────────────────────────
+    double avg_queue_term{0.0};
+    double avg_prediction_term{0.0};
+    double avg_penalty_term{0.0};
+    
     // ── Hybrid Diagnostics ────────────────────────────────────────────────────
     double avg_tau{0.0};
     double avg_gap{0.0};
     double avg_eta_c{0.0};
+    double hybrid_avg_streak{0.0};
+    uint64_t hybrid_max_streak{0};
+    uint64_t hybrid_transition_count{0};
 
     struct HybridSample {
         uint64_t tick;
@@ -157,6 +170,13 @@ public:
      * @complexity O(1)
      */
     void recordDecision(const Decision& decision, uint64_t tick);
+
+    /**
+     * @brief Records the wall-clock time spent in scheduler choose().
+     * @param elapsed_ns Elapsed time in nanoseconds.
+     * @complexity O(1)
+     */
+    void recordSchedulerRuntime(double elapsed_ns);
 
     /**
      * @brief Records a Lyapunov V(t) sample.
@@ -236,6 +256,24 @@ private:
     double   gap_sum_{0.0};
     double   eta_c_sum_{0.0};
     std::size_t last_chosen_pid_{std::size_t(-1)};
+    
+    // Scheduler runtime
+    double sum_scheduler_runtime_ns_{0.0};
+    double max_scheduler_runtime_ns_{0.0};
+    uint64_t runtime_samples_{0};
+
+    // Score components
+    double sum_queue_term_{0.0};
+    double sum_prediction_term_{0.0};
+    double sum_penalty_term_{0.0};
+
+    // Hybrid streaks
+    int last_mode_{-1};
+    uint64_t current_streak_{0};
+    uint64_t max_streak_{0};
+    uint64_t sum_streaks_{0};
+    uint64_t streak_count_{0};
+    uint64_t transition_count_{0};
     
     std::vector<OfflineReport::HybridSample> hybrid_samples_;
 

@@ -47,6 +47,13 @@ Decision EMBIScheduler::choose(const SchedulerContext& ctx) {
 
     if (!d.valid) return Decision::idle();
 
+    const Process& chosen_p = procs[d.chosen_pid];
+    d.queue_term = 2.0 * chosen_p.mu_hat * static_cast<double>(chosen_p.queue_length + chosen_p.sync_debt);
+    d.prediction_term = 2.0 * chosen_p.lambda_hat * chosen_p.mu_hat;
+    d.penalty_term = chosen_p.mu_hat * M_;
+    d.raw_score = d.raw_scores[d.chosen_pid];
+    d.clipped_score = d.final_scores[d.chosen_pid];
+
     computeDecisionDiagnostics(scores, d);
     d.decision_time_ns = timer.elapsed_ns();
     return d;
