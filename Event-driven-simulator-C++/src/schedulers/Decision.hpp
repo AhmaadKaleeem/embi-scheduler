@@ -87,6 +87,10 @@ struct Decision {
     double raw_score{0.0};        ///< Unclipped raw score sum
     double clipped_score{0.0};    ///< Final score after clipping (max(0, raw))
 
+    // ─── Ranking diagnostics ──────────────────────────────────────────────────
+    bool differed_from_mw{false}; ///< True if the chosen PID differed from MaxWeight's choice
+
+
     // ─── Convenience ─────────────────────────────────────────────────────────
 
     /// Returns a sentinel Decision representing a CPU-idle tick.

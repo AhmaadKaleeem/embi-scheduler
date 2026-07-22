@@ -68,6 +68,12 @@ struct Event {
     std::size_t pid{0};                ///< Target process ID (0 for global events).
     double    payload{0.0};            ///< Event-specific data (see table above).
 
+    // ─── Trace fidelity preservation fields ──────────────────────────────────
+    uint64_t    trace_id{0};           ///< Distributed trace ID
+    uint64_t    rpc_id{0};             ///< Individual RPC span ID
+    std::size_t source_service{0};     ///< ID of the calling microservice
+    uint8_t     priority{0};           ///< Tie-breaker priority
+
     // ─── Comparison operators ────────────────────────────────────────────────
 
     /**
@@ -88,7 +94,8 @@ struct Event {
     }
 
     [[nodiscard]] bool operator==(const Event& other) const noexcept {
-        return timestamp == other.timestamp && type == other.type && pid == other.pid;
+        return timestamp == other.timestamp && type == other.type && pid == other.pid &&
+               trace_id == other.trace_id && rpc_id == other.rpc_id;
     }
 };
 
@@ -111,33 +118,33 @@ struct EventComparator {
 // ─── Factory helpers ─────────────────────────────────────────────────────────
 
 /// Constructs an ArrivalEvent for the given process at the given tick.
-[[nodiscard]] inline Event makeArrivalEvent(double tick, std::size_t pid) noexcept {
-    return Event{tick, EventType::Arrival, pid, 0.0};
+[[nodiscard]] inline Event makeArrivalEvent(double tick, std::size_t pid, uint64_t trace_id = 0, uint64_t rpc_id = 0, std::size_t source_service = 0, uint8_t priority = 0) noexcept {
+    return Event{tick, EventType::Arrival, pid, 0.0, trace_id, rpc_id, source_service, priority};
 }
 
 /// Constructs a LockAcquireEvent: pid attempts to acquire lock_id at tick.
-[[nodiscard]] inline Event makeLockAcquireEvent(double tick, std::size_t pid, std::size_t lock_id) noexcept {
-    return Event{tick, EventType::LockAcquire, pid, static_cast<double>(lock_id)};
+[[nodiscard]] inline Event makeLockAcquireEvent(double tick, std::size_t pid, std::size_t lock_id, uint64_t trace_id = 0, uint64_t rpc_id = 0, std::size_t source_service = 0, uint8_t priority = 0) noexcept {
+    return Event{tick, EventType::LockAcquire, pid, static_cast<double>(lock_id), trace_id, rpc_id, source_service, priority};
 }
 
 /// Constructs a LockReleaseEvent: pid releases lock_id at tick.
-[[nodiscard]] inline Event makeLockReleaseEvent(double tick, std::size_t pid, std::size_t lock_id) noexcept {
-    return Event{tick, EventType::LockRelease, pid, static_cast<double>(lock_id)};
+[[nodiscard]] inline Event makeLockReleaseEvent(double tick, std::size_t pid, std::size_t lock_id, uint64_t trace_id = 0, uint64_t rpc_id = 0, std::size_t source_service = 0, uint8_t priority = 0) noexcept {
+    return Event{tick, EventType::LockRelease, pid, static_cast<double>(lock_id), trace_id, rpc_id, source_service, priority};
 }
 
 /// Constructs a ScheduleEvent for the given tick.
 [[nodiscard]] inline Event makeScheduleEvent(double tick) noexcept {
-    return Event{tick, EventType::Schedule, 0, 0.0};
+    return Event{tick, EventType::Schedule, 0, 0.0, 0, 0, 0, 0};
 }
 
 /// Constructs a ServiceEvent for the chosen process at the given tick.
 [[nodiscard]] inline Event makeServiceEvent(double tick, std::size_t pid) noexcept {
-    return Event{tick, EventType::Service, pid, 0.0};
+    return Event{tick, EventType::Service, pid, 0.0, 0, 0, 0, 0};
 }
 
 /// Constructs a MetricsEvent for the given tick.
 [[nodiscard]] inline Event makeMetricsEvent(double tick) noexcept {
-    return Event{tick, EventType::Metrics, 0, 0.0};
+    return Event{tick, EventType::Metrics, 0, 0.0, 0, 0, 0, 0};
 }
 
 } // namespace embi

@@ -11,6 +11,8 @@
 #include "core/EventLoop.hpp"
 #include "schedulers/CmuScheduler.hpp"
 #include "schedulers/EMBIScheduler.hpp"
+#include "schedulers/estimators/BaselineEMBIEstimator.hpp"
+#include "schedulers/estimators/KatzEMBIEstimator.hpp"
 #include "schedulers/EMBIAblatedScheduler.hpp"
 #include "schedulers/SJFScheduler.hpp"
 #include "schedulers/CFSScheduler.hpp"
@@ -50,21 +52,36 @@ std::unique_ptr<IEventSource> Simulator::buildEventSource(const Config& config) 
     } else {
         const std::string& name = config.workload_name;
 
+        // config.arrival_rate specifies the total system arrival rate.
+        // Calculate per-process arrival rate to configure workloads.
+        double per_proc_rate = config.arrival_rate / static_cast<double>(config.num_processes);
+        double mean_inter_arrival = (per_proc_rate > 0.0) ? (1.0 / per_proc_rate) : 1e12;
+
         if (name == "uniform") {
-            wl = std::make_unique<UniformWorkload>(
-                config.seed, config.uniform_lo, config.uniform_hi);
+            // Create a uniform distribution around the mean inter-arrival time
+            double lo = 0.5 * mean_inter_arrival;
+            double hi = 1.5 * mean_inter_arrival;
+            wl = std::make_unique<UniformWorkload>(config.seed, lo, hi);
         } else if (name == "poisson") {
-            wl = std::make_unique<PoissonWorkload>(config.seed, config.arrival_rate);
+            wl = std::make_unique<PoissonWorkload>(config.seed, per_proc_rate);
         } else if (name == "bursty") {
+            // Default P(ON) = p_off_on / (p_on_off + p_off_on)
+            double p_on = config.burst_p_off_on / (config.burst_p_on_off + config.burst_p_off_on);
+            double p_off = 1.0 - p_on;
+            double on_rate = (per_proc_rate - p_off * config.burst_off_rate) / p_on;
+            if (on_rate <= 0.0) on_rate = 0.0001; // Avoid negative rates if config is invalid
+            
             wl = std::make_unique<BurstyWorkload>(
                 config.seed,
-                config.burst_on_rate,
+                on_rate,
                 config.burst_off_rate,
                 config.burst_p_on_off,
                 config.burst_p_off_on);
         } else if (name == "heavy_tail") {
+            // Pareto mean = (scale * shape) / (shape - 1)
+            double scale = (mean_inter_arrival * (config.pareto_shape - 1.0)) / config.pareto_shape;
             wl = std::make_unique<HeavyTailWorkload>(
-                config.seed, config.pareto_scale, config.pareto_shape);
+                config.seed, scale, config.pareto_shape);
         } else if (name == "trace") {
             // Load and parse the trace
             AlibabaParser parser;
@@ -102,16 +119,25 @@ std::unique_ptr<BaseScheduler> Simulator::buildScheduler(const Config& config) {
     const std::string& name = config.scheduler_name;
 
     if (name == "embi") {
-        return std::make_unique<EMBIScheduler>(config, /*clip=*/true);
+        return std::make_unique<EMBIScheduler>(std::make_unique<BaselineEMBIEstimator>(config.M));
+    }
+    if (name == "embi_oracle") {
+        return std::make_unique<EMBIScheduler>(std::make_unique<BaselineEMBIEstimator>(config.M));
     }
     if (name == "embi_unclipped") {
-        return std::make_unique<EMBIScheduler>(config, /*clip=*/false);
+        return std::make_unique<EMBIScheduler>(std::make_unique<BaselineEMBIEstimator>(config.M));
     }
     if (name == "hybrid_embi") {
         return std::make_unique<HybridEMBIScheduler>(config);
     }
     if (name == "embi_ablated") {
-        return std::make_unique<EMBIAblatedScheduler>(config);
+        return std::make_unique<EMBIAblatedScheduler>(config, true, true);
+    }
+    if (name == "embi_no_prediction") {
+        return std::make_unique<EMBIAblatedScheduler>(config, true, false);
+    }
+    if (name == "embi_no_penalty") {
+        return std::make_unique<EMBIAblatedScheduler>(config, false, true);
     }
     if (name == "sjf") {
         return std::make_unique<SJFScheduler>(config);

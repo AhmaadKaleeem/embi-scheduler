@@ -167,6 +167,7 @@ void StatisticsDatabase::exportJSONSummary(const std::string&    path,
     j["config"]["workload"]     = config_.workload_name;
     j["config"]["ticks"]        = config_.ticks;
     j["config"]["warmup_ticks"] = config_.warmup_ticks;
+    j["config"]["measured_ticks"] = (config_.ticks > config_.warmup_ticks) ? (config_.ticks - config_.warmup_ticks) : 0;
     j["config"]["num_processes"]= config_.num_processes;
     j["config"]["seed"]         = config_.seed;
     j["config"]["arrival_rate"] = config_.arrival_rate;

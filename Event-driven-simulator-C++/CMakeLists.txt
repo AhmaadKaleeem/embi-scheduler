@@ -113,6 +113,7 @@ set(EMBI_CORE_SOURCES
     src/core/EventLoop.cpp
     src/core/Simulator.cpp
     src/core/Experiment.cpp
+    src/core/OracleEvaluator.cpp
     src/events/SyntheticEventSource.cpp
     src/trace/AlibabaParser.cpp
     src/trace/TraceValidator.cpp
@@ -120,6 +121,7 @@ set(EMBI_CORE_SOURCES
     src/trace/TraceStore.cpp
     src/trace/ReplayEngine.cpp
     src/events/TraceReplaySource.cpp
+    src/trace/TraceReconstructor.cpp
 )
 
 set(EMBI_SCHEDULER_SOURCES
@@ -134,6 +136,8 @@ set(EMBI_SCHEDULER_SOURCES
     src/schedulers/SJFScheduler.cpp
     src/schedulers/CFSScheduler.cpp
     src/schedulers/GSQScheduler.cpp
+    src/schedulers/estimators/BaselineEMBIEstimator.cpp
+    src/schedulers/estimators/KatzEMBIEstimator.cpp
 )
 
 set(EMBI_WORKLOAD_SOURCES
@@ -144,6 +148,7 @@ set(EMBI_WORKLOAD_SOURCES
     src/workloads/LockContentionWorkload.cpp
     src/workloads/TraceLoader.cpp
     src/workloads/WorkloadProfile.cpp
+    src/workloads/GraphWorkload.cpp
 )
 
 set(EMBI_LOGGING_SOURCES

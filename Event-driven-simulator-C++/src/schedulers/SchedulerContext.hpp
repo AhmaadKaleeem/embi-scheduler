@@ -16,6 +16,7 @@
 
 #include "core/Config.hpp"
 #include "core/Process.hpp"
+#include "core/GraphState.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,6 +24,8 @@
 #include <vector>
 
 namespace embi {
+
+class CriticalityEstimator;
 
 /**
  * @struct OnlineSnapshot
@@ -68,6 +71,12 @@ struct SchedulerContext {
 
     /// Full simulation configuration (includes M, alpha, beta, etc.).
     const Config& config;
+
+    /// Global topological graph state (dynamic + static trace graphs).
+    const GraphState* graph_state{nullptr};
+
+    /// Pluggable estimator for global waiting time impact
+    const CriticalityEstimator* criticality{nullptr};
 };
 
 } // namespace embi

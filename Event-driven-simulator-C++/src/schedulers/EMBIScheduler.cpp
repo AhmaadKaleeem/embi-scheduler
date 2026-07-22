@@ -1,24 +1,19 @@
 /**
  * @file EMBIScheduler.cpp
- * @brief EMBI scheduler implementation.
- *
- * score_i = clip(μ̂_i · (2·Q_i + 2·λ̂_i − M))
+ * @brief EMBI scheduler implementation using the estimator framework.
  *
  * @author  EMBI Simulator Project
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 #include "schedulers/EMBIScheduler.hpp"
-
 #include "utils/Timer.hpp"
-
 #include <algorithm>
-#include <vector>
 
 namespace embi {
 
-EMBIScheduler::EMBIScheduler(const Config& config, bool clip)
-    : M_(config.M), clip_(clip) {}
+EMBIScheduler::EMBIScheduler(std::unique_ptr<EMBIEstimator> estimator)
+    : estimator_(std::move(estimator)) {}
 
 Decision EMBIScheduler::choose(const SchedulerContext& ctx) {
     const auto& procs = ctx.processes;
@@ -28,39 +23,23 @@ Decision EMBIScheduler::choose(const SchedulerContext& ctx) {
 
     Timer timer;
 
-    // ── Compute per-process EMBI scores ──────────────────────────────────────
-    std::vector<double> scores(N);
-    std::vector<double> raw_scores(N);
-    for (std::size_t i = 0; i < N; ++i) {
-        const Process& p = procs[i];
-        double raw = p.mu_hat * (2.0 * static_cast<double>(p.queue_length + p.sync_debt)
-                                 + 2.0 * p.lambda_hat
-                                 - M_);
-        raw_scores[i] = raw;
-        scores[i] = clip_ ? std::max(0.0, raw) : raw;
-    }
+    // Estimate EMBI for all processes
+    std::vector<double> scores = estimator_->estimate(procs, *ctx.graph_state);
 
     Decision d;
-    d.raw_scores = raw_scores;
-    d.final_scores = scores;
     argmaxWithQueues(scores, procs, d);
 
     if (!d.valid) return Decision::idle();
 
-    const Process& chosen_p = procs[d.chosen_pid];
-    d.queue_term = 2.0 * chosen_p.mu_hat * static_cast<double>(chosen_p.queue_length + chosen_p.sync_debt);
-    d.prediction_term = 2.0 * chosen_p.lambda_hat * chosen_p.mu_hat;
-    d.penalty_term = chosen_p.mu_hat * M_;
-    d.raw_score = d.raw_scores[d.chosen_pid];
-    d.clipped_score = d.final_scores[d.chosen_pid];
-
     computeDecisionDiagnostics(scores, d);
     d.decision_time_ns = timer.elapsed_ns();
+    d.mode_flag = 4; // Framework mode
+
     return d;
 }
 
 std::string_view EMBIScheduler::name() const noexcept {
-    return clip_ ? "embi" : "embi_unclipped";
+    return "embi_framework";
 }
 
 } // namespace embi

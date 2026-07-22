@@ -39,7 +39,9 @@ EventLoop::EventLoop(const Config&       config,
         if (!config.arrival_rate_asymmetric.empty()) {
             rate = config.arrival_rate_asymmetric[i % config.arrival_rate_asymmetric.size()];
         }
-        processes_.emplace_back(i,
+        std::size_t raw_id = i;
+        service_id_to_index_[raw_id] = processes_.size();
+        processes_.emplace_back(raw_id,
                                 rate,
                                 config.service_rate,
                                 config.alpha,
@@ -55,6 +57,33 @@ EventLoop::EventLoop(const Config&       config,
     }
 }
 
+// ─── Process mapping ───────────────────────────────────────────────────────────
+
+std::size_t EventLoop::getOrRegisterProcess(std::size_t raw_service_id) {
+    auto it = service_id_to_index_.find(raw_service_id);
+    if (it != service_id_to_index_.end()) {
+        return it->second;
+    }
+    
+    // Dynamically register a new process
+    std::size_t new_idx = processes_.size();
+    service_id_to_index_[raw_service_id] = new_idx;
+    
+    double rate = config_.arrival_rate;
+    if (!config_.arrival_rate_asymmetric.empty()) {
+        rate = config_.arrival_rate_asymmetric[new_idx % config_.arrival_rate_asymmetric.size()];
+    }
+    
+    processes_.emplace_back(raw_service_id,
+                            rate,
+                            config_.service_rate,
+                            config_.alpha,
+                            config_.beta,
+                            config_.lambda_noise_stddev);
+                            
+    return new_idx;
+}
+
 // ─── Main loop ───────────────────────────────────────────────────────────────
 
 void EventLoop::run() {
@@ -62,6 +91,18 @@ void EventLoop::run() {
     const uint64_t log_freq    = config_.log_freq;
 
     for (uint64_t tick = 0; tick < total_ticks; ++tick) {
+        if (tick == config_.warmup_ticks) {
+            online_metrics_->reset();
+            for (auto& p : processes_) {
+                p.starvation_events = 0;
+                p.max_starvation_ticks = 0;
+                p.ticks_since_last_service = 0;
+                p.arrival_count = 0;
+                p.completed_jobs = 0;
+                p.total_waiting_time = 0.0;
+            }
+        }
+
         const double tick_d = static_cast<double>(tick);
 
         // ── Phase 1: Generate domain events (Arrivals, Lock requests, etc) ───
@@ -97,7 +138,7 @@ void EventLoop::run() {
                     handleScheduleEvent(e, tick);
                     // If the scheduler chose a process, push a ServiceEvent
                     if (last_decision_.valid) {
-                        Event srv = makeServiceEvent(tick_d, last_decision_.chosen_pid);
+                        Event srv = makeServiceEvent(tick_d, processes_[last_decision_.chosen_pid].id);
                         // Encode whether this is a context switch into the payload
                         bool is_cx = (prev_decision_ != static_cast<std::size_t>(-1)) &&
                                      (last_decision_.chosen_pid != prev_decision_);
@@ -148,9 +189,7 @@ void EventLoop::run() {
 // ─── Event handlers ──────────────────────────────────────────────────────────
 
 void EventLoop::handleArrivalEvent(const Event& e, uint64_t tick) {
-    std::size_t pid = e.pid;
-    if (pid >= processes_.size()) return;
-
+    std::size_t pid = getOrRegisterProcess(e.pid);
     processes_[pid].arrival(static_cast<double>(tick));
 }
 
@@ -228,8 +267,9 @@ void EventLoop::handleScheduleEvent(const Event& /*e*/, uint64_t tick) {
 
 void EventLoop::handleServiceEvent(const Event& e, uint64_t tick,
                                     double& waiting_time_out) {
-    std::size_t pid = e.pid;
-    if (pid >= processes_.size()) return;
+    auto it = service_id_to_index_.find(e.pid);
+    if (it == service_id_to_index_.end()) return;
+    std::size_t pid = it->second;
 
     // In lock-contention mode, CPU-time service (waiter release) is handled
     // inside handleScheduleEvent. The regular ServiceEvent still handles
@@ -257,9 +297,9 @@ void EventLoop::handleServiceEvent(const Event& e, uint64_t tick,
 // ─── Lock event handlers ──────────────────────────────────────────────────────
 
 void EventLoop::handleLockAcquireEvent(const Event& e, uint64_t /*tick*/) {
-    std::size_t pid     = e.pid;
+    std::size_t pid     = getOrRegisterProcess(e.pid);
     std::size_t lock_id = static_cast<std::size_t>(e.payload);
-    if (pid >= processes_.size() || lock_id >= lock_mgr_->numLocks()) return;
+    if (lock_id >= lock_mgr_->numLocks()) return;
 
     bool acquired = lock_mgr_->acquire(lock_id, pid);
 

@@ -101,6 +101,15 @@ struct OfflineReport {
     double avg_prediction_term{0.0};
     double avg_penalty_term{0.0};
     
+    // ── Estimator Validation ──────────────────────────────────────────────────
+    double mean_lambda_hat{0.0};
+    double mean_mu_hat{0.0};
+
+    // ─── Graph-Aware Trace Metrics ───────────────────────────────────────
+    double total_blocked_time{0.0};         ///< Total time jobs spent waiting on locks or dependencies
+    double graph_update_cost_ns{0.0};       ///< Overhead of updating and propagating criticality
+    double trace_recovery_accuracy{100.0};  ///< Percentage of DAG edges correctly reconstructed
+    
     // ── Hybrid Diagnostics ────────────────────────────────────────────────────
     double avg_tau{0.0};
     double avg_gap{0.0};
@@ -116,6 +125,9 @@ struct OfflineReport {
         int mode;
     };
     std::vector<HybridSample> hybrid_samples;
+    
+    // ── Ranking Diagnostics ───────────────────────────────────────────────────
+    double mw_divergence_ratio{0.0}; ///< Fraction of decisions that differed from MaxWeight
 };
 
 /**
@@ -136,7 +148,7 @@ struct OfflineReport {
 class OfflineMetrics {
 public:
     /// Number of histogram bins for waiting time and queue length distributions.
-    static constexpr std::size_t kHistogramBins = 10'000;
+    static constexpr std::size_t kHistogramBins = 10'000'000;
 
     /**
      * @brief Constructs an OfflineMetrics accumulator.
@@ -241,6 +253,11 @@ private:
     double              max_lyapunov_v_{0.0};
     uint64_t            v_samples_count_{0};
     
+    // ── Estimator MSE ─────────────────────────────────────────────────────────
+    double sum_sq_err_lambda_{0.0};
+    double sum_sq_err_mu_{0.0};
+    uint64_t estimator_samples_{0};
+
     static constexpr std::size_t kMaxDriftSamples = 100'000;
     uint64_t sample_stride_{1};
     uint64_t sample_counter_{0};
@@ -276,6 +293,9 @@ private:
     uint64_t transition_count_{0};
     
     std::vector<OfflineReport::HybridSample> hybrid_samples_;
+
+    // Ranking
+    uint64_t ranking_differences_{0};
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     [[nodiscard]] double histogramPercentile(const std::vector<uint64_t>& hist,

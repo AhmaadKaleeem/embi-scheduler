@@ -188,10 +188,15 @@ void SummaryWriter::writeJSONSummary(const std::string&             path,
         entry["hybrid_avg_streak"] = rs.offline.hybrid_avg_streak;
         entry["hybrid_max_streak"] = rs.offline.hybrid_max_streak;
         entry["hybrid_transitions"] = rs.offline.hybrid_transition_count;
+        entry["mw_divergence_ratio"] = rs.offline.mw_divergence_ratio;
         
         // ── Runtime Overhead ──────────────────────────────────────────────────
         entry["avg_scheduler_runtime_ns"] = rs.offline.avg_scheduler_runtime_ns;
         entry["max_scheduler_runtime_ns"] = rs.offline.max_scheduler_runtime_ns;
+        
+        // ── Estimator Validation ──────────────────────────────────────────────
+        entry["mean_lambda_hat"] = rs.offline.mean_lambda_hat;
+        entry["mean_mu_hat"] = rs.offline.mean_mu_hat;
         
         // ── Score Components ──────────────────────────────────────────────────
         double sum_components = rs.offline.avg_queue_term + rs.offline.avg_prediction_term + rs.offline.avg_penalty_term + 1e-9;

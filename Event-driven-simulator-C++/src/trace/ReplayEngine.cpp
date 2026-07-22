@@ -52,8 +52,12 @@ void ReplayEngine::emitEvents(double tick_d, EventQueue& queue) {
             queue.push(Event{
                 static_cast<double>(mapped_tick),
                 event_type,
-                static_cast<std::size_t>(rec.destination_service % config_.num_processes),
-                payload
+                static_cast<std::size_t>(rec.destination_service),
+                payload,
+                rec.trace_id,
+                rec.rpc_id,
+                static_cast<std::size_t>(rec.source_service),
+                rec.priority
             });
         }
         current_idx_++;

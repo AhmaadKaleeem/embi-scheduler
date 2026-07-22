@@ -29,6 +29,8 @@ Process::Process(std::size_t id_,
     , true_service_rate(true_mu)
     , lambda_hat(true_lambda)   // Warm-start: assume true rate
     , mu_hat(true_mu)           // Warm-start: assume true rate
+    , lambda_ewma(true_lambda)
+    , mu_ewma(true_mu)
     , alpha(alpha_)
     , beta(beta_)
     , lambda_noise_stddev(lambda_noise_stddev_)
@@ -110,15 +112,16 @@ void Process::updateArrivalEstimate(double inter_arrival_ticks) {
     if (inter_arrival_ticks <= 0.0) return;
 
     double observed_rate = 1.0 / inter_arrival_ticks;
-    lambda_hat = (1.0 - alpha) * lambda_hat + alpha * observed_rate;
+    lambda_ewma = (1.0 - alpha) * lambda_ewma + alpha * observed_rate;
 
     if (lambda_noise_stddev > 0.0) {
-        // We use a static thread-local generator for efficiency. 
-        // In a true multi-threaded environment, this is safe.
+        // Apply relative noise to the estimator
         static thread_local std::mt19937_64 gen{std::random_device{}()};
-        std::normal_distribution<double> dist{0.0, lambda_noise_stddev};
-        lambda_hat += dist(gen);
+        std::normal_distribution<double> dist{0.0, lambda_noise_stddev * lambda_ewma};
+        lambda_hat = lambda_ewma + dist(gen);
         if (lambda_hat < 0.0) lambda_hat = 0.0;
+    } else {
+        lambda_hat = lambda_ewma;
     }
 }
 
@@ -126,7 +129,8 @@ void Process::updateServiceEstimate(double service_ticks) {
     if (service_ticks <= 0.0) return;
 
     double observed_rate = 1.0 / service_ticks;
-    mu_hat = (1.0 - beta) * mu_hat + beta * observed_rate;
+    mu_ewma = (1.0 - beta) * mu_ewma + beta * observed_rate;
+    mu_hat = mu_ewma;
 }
 
 // ─── Reset ────────────────────────────────────────────────────────────────────

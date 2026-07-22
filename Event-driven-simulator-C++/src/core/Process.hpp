@@ -131,8 +131,11 @@ public:
 
     // ─── EWMA estimates ───────────────────────────────────────────────────────
 
-    double lambda_hat{0.0};  ///< Estimated arrival rate (EWMA of 1/inter-arrival).
-    double mu_hat{1.0};      ///< Estimated service rate (EWMA of 1/service_time).
+    double lambda_hat{0.0};  ///< Exposed estimated arrival rate (EWMA + noise).
+    double mu_hat{1.0};      ///< Exposed estimated service rate (EWMA + noise).
+    
+    double lambda_ewma{0.0}; ///< Internal pure EWMA state for arrival
+    double mu_ewma{1.0};     ///< Internal pure EWMA state for service
     double alpha{0.1};       ///< EWMA smoothing coefficient for lambda_hat.
     double beta{0.1};        ///< EWMA smoothing coefficient for mu_hat.
     double lambda_noise_stddev{0.0}; ///< Noise injected into arrival estimate.

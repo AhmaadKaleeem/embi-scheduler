@@ -16,7 +16,7 @@ namespace embi {
  */
 class EMBIAblatedScheduler : public BaseScheduler {
 public:
-    explicit EMBIAblatedScheduler(const Config& config);
+    explicit EMBIAblatedScheduler(const Config& config, bool no_prediction, bool no_penalty);
     
     Decision choose(const SchedulerContext& ctx) override;
     
@@ -24,6 +24,8 @@ public:
     
 private:
     double M_;
+    bool no_pred_;
+    bool no_pen_;
 };
 
 } // namespace embi

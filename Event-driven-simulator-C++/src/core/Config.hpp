@@ -28,7 +28,8 @@ namespace embi {
 
 /// Compile-time list of all supported scheduler identifiers.
 inline constexpr const char* kValidSchedulers[] = {
-    "embi", "embi_unclipped", "embi_ablated", "maxweight", "cmu", "rr", "fcfs", "hybrid_embi",
+    "embi", "embi_oracle", "embi_unclipped", "embi_ablated", "embi_no_prediction", "embi_no_penalty",
+    "maxweight", "cmu", "rr", "fcfs", "hybrid_embi",
     "sjf", "cfs", "gsq"};
 
 /// Compile-time list of all supported workload identifiers.

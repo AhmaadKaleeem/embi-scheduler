@@ -32,6 +32,7 @@ Decision FCFSScheduler::choose(const SchedulerContext& ctx) {
         const Process& p = procs[i];
         if (p.queue_length <= 0) continue;
         if (lock_mode && !p.lock_state.holds_lock) continue;
+        if (ctx.graph_state && ctx.graph_state->blocked_jobs.count(i) > 0) continue;
 
         const double hol = p.holArrivalTime();
         if (hol < 0.0) continue;
@@ -52,6 +53,7 @@ Decision FCFSScheduler::choose(const SchedulerContext& ctx) {
         const Process& p = procs[i];
         if (p.queue_length <= 0) continue;
         if (lock_mode && !p.lock_state.holds_lock) continue;
+        if (ctx.graph_state && ctx.graph_state->blocked_jobs.count(i) > 0) continue;
 
         const double hol = p.holArrivalTime();
         if (hol >= 0.0) {

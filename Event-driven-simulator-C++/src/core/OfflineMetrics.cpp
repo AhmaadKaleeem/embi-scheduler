@@ -58,11 +58,17 @@ void OfflineMetrics::recordQueueSnapshot(const std::vector<Process>& processes,
 
         // Bin the queue length
         std::size_t qbin = static_cast<std::size_t>(q);
-        if (qbin < kHistogramBins) {
-            queue_hist_[qbin]++;
-        } else {
-            queue_hist_[kHistogramBins - 1]++;
+        if (qbin >= queue_hist_.size()) {
+            queue_hist_.resize(qbin + 1, 0ULL);
         }
+        queue_hist_[qbin]++;
+        
+        // Accumulate MSE
+        double err_lam = processes[i].lambda_hat - processes[i].true_arrival_rate;
+        double err_mu  = processes[i].mu_hat - processes[i].true_service_rate;
+        sum_sq_err_lambda_ += err_lam * err_lam;
+        sum_sq_err_mu_     += err_mu * err_mu;
+        estimator_samples_++;
     }
     queue_samples_++;
 }
@@ -114,6 +120,10 @@ void OfflineMetrics::recordDecision(const Decision& decision, uint64_t tick) {
     sum_queue_term_ += decision.queue_term;
     sum_prediction_term_ += decision.prediction_term;
     sum_penalty_term_ += decision.penalty_term;
+    
+    if (decision.differed_from_mw) {
+        ranking_differences_++;
+    }
     
     // Sample hybrid decisions (e.g., max 10k samples)
     if (decision_count_ % 100 == 0 && hybrid_samples_.size() < 10000) {
@@ -321,6 +331,9 @@ OfflineReport OfflineMetrics::compute(const std::vector<Process>& processes,
         r.hybrid_avg_streak = scount > 0 ? static_cast<double>(ssum) / scount : 0.0;
         r.hybrid_max_streak = std::max(max_streak_, current_streak_);
         r.hybrid_transition_count = transition_count_;
+        
+        r.mw_divergence_ratio = (decision_count_ > 0) ? 
+            static_cast<double>(ranking_differences_) / decision_count_ : 0.0;
 
         // ── Lyapunov V ────────────────────────────────────────────────────────────
         r.avg_lyapunov_v = (total_ticks > 0)
@@ -328,6 +341,9 @@ OfflineReport OfflineMetrics::compute(const std::vector<Process>& processes,
             : 0.0;
         r.max_lyapunov_v = max_lyapunov_v_;
         r.v_samples      = v_samples_;
+        
+        r.mean_lambda_hat = 0.0;
+        r.mean_mu_hat     = 0.0;
     }
 
     return r;
@@ -376,6 +392,7 @@ void OfflineMetrics::reset() {
     sum_streaks_ = 0;
     streak_count_ = 0;
     transition_count_ = 0;
+    ranking_differences_ = 0;
     
     sample_counter_    = 0;
     drift_samples_.clear();
@@ -384,6 +401,10 @@ void OfflineMetrics::reset() {
     sum_lyapunov_v_  = 0.0;
     max_lyapunov_v_  = 0.0;
     v_samples_count_ = 0;
+    
+    sum_sq_err_lambda_ = 0.0;
+    sum_sq_err_mu_ = 0.0;
+    estimator_samples_ = 0;
 }
 
 // ─── Histogram percentile ────────────────────────────────────────────────────

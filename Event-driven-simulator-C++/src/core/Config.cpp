@@ -71,7 +71,7 @@ void Config::validate() const {
     // Scheduler name
     if (!inTable(kValidSchedulers, std::size(kValidSchedulers), scheduler_name)) {
         std::string msg = "Config: unknown scheduler '" + scheduler_name +
-                          "'. Valid options: embi, embi_unclipped, maxweight, cmu, rr, fcfs";
+                          "'. Valid options: embi, embi_oracle, embi_unclipped, maxweight, cmu, rr, fcfs";
         throw std::invalid_argument(msg);
     }
 

@@ -36,6 +36,7 @@
 #include <memory>
 #include <optional>
 #include <vector>
+#include <unordered_map>
 
 namespace embi {
 
@@ -106,6 +107,7 @@ private:
 
     // ─── State ─────────────────────────────────────────────────────────────────────────
     std::vector<Process>  processes_;           ///< All simulated processes.
+    std::unordered_map<std::size_t, std::size_t> service_id_to_index_; ///< Maps trace ID to dense processes_ index
     EventQueue            event_queue_;         ///< Priority queue for events.
     std::optional<std::size_t> prev_decision_;  ///< PID chosen last tick.
     Decision              last_decision_;       ///< Shared across event handlers.
@@ -113,6 +115,9 @@ private:
     // ─── Lock-contention state (null unless workload == lock_contention) ─────────
     std::unique_ptr<LockManager>         lock_mgr_;             ///< Lock pool.
     LockContentionWorkload*              lock_workload_{nullptr};
+
+    // ─── Process mapping ───────────────────────────────────────────────────────────
+    std::size_t getOrRegisterProcess(std::size_t raw_service_id);
 
     // ─── Event handlers ────────────────────────────────────────────────────────────
     void handleArrivalEvent    (const Event& e, uint64_t tick);
